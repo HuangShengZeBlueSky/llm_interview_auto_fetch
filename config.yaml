@@ -1,0 +1,11 @@
+# 配置文件: 自动化处理大模型面试题库
+llm:
+  api_key_env_var: "LLM_API_KEY"
+  base_url: "https://api123.icu/v1"
+  model: "claude-opus-4-6"
+
+paths:
+  raw_data: "raw_data"        # 存放未处理的图片/文本
+  archive: "archive"          # 存放处理完毕的文件
+  reports: "reports"          # 存放生成的 Markdown 报告
+  prompts: "prompts"          # 存放提示词模板

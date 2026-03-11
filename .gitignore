@@ -1,0 +1,11 @@
+# 环境与安全
+.env
+__pycache__/
+*.pyc
+
+# 临时文件
+tmp_test_api.py
+output.log
+
+# 旧的 reports 子目录 git
+reports/.git/
