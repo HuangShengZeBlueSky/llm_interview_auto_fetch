@@ -1,0 +1,18 @@
+{
+  "name": "llm-interview-auto-fetch",
+  "version": "2.0.0",
+  "description": "Auto-processing LLM interview questions to a static site",
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:deploy": "vitepress build docs && gh-pages -d docs/.vitepress/dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "gh-pages": "^6.3.0",
+    "vitepress": "^1.6.4"
+  }
+}

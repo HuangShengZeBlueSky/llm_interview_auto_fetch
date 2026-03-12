@@ -9,3 +9,8 @@ output.log
 
 # 旧的 reports 子目录 git
 reports/.git/
+
+# Node & VitePress
+node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
