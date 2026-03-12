@@ -43,7 +43,7 @@ jobs:
         run: python workflow_scripts/build_docs.py
 
       - name: Build with VitePress
-        run: npm run docs:build
+        run: npx vitepress build docs --base="/llm_interview_auto_fetch/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
