@@ -1,23 +1,43 @@
-companies:
+interviews_companies:
 - 字节跳动
+- 阿里巴巴
 - 腾讯
-- 阿里
 - 百度
 - 美团
 - 快手
-- 小红书
 - 滴滴
-- 华为
-- 通用/未知
-- 通用_未知
-tags:
+- 自动驾驶
+- 量化打分平台
+- 未知
+interviews_tags:
 - LLM基础
-- 强化学习与RLHF
 - RAG与向量检索
-- Agent与多智能体
-- 提示词工程
-- 模型微调优化
-- 算法代码
-- 系统架构设计
-- 业务场景落地
+- Agent与工具调用
+- 模型微调
+- CUDA与推理加速
+- 强化学习与RLHF
+- 多模态基础
+- 传统机器学习
 - 其他
+papers_tags:
+- LLM Architecture
+- RLHF & Reward Model
+- Prompt Engineering
+- Parameter-Efficient Fine-Tuning
+- RAG & Knowledge Editing
+- Agent & Planning
+- Reasoning & CoT
+- KV Cache & Context Windows
+- Multimodal Models
+- Evaluation & Benchmarks
+- Graph Representation
+- 3D Generation
+- AI for Science
+courses_tags:
+- CS224N (NLP基础)
+- CS25 (大模型前沿)
+- MIT 6.S094 (深度学习与自动驾驶)
+- CUDA与并行计算
+- Triton算子开发入门
+- RAG系统设计指南
+- 手搓Transformer源码解析

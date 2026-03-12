@@ -24,7 +24,7 @@ def build():
         
     # 添加一个索引文件到 docs/reports/
     with open(os.path.join(DOCS_REPORTS_DIR, "index.md"), "w", encoding="utf-8") as f:
-        f.write("# 📑 最新面经汇总\n\n请从左侧边栏选择各公司或具体知识点进行浏览。")
+        f.write("# 📑 最新全域知识库汇总\n\n请从左侧边栏选择 **面经解答**、**前沿论文精读**、或 **体系公开课** 进行浏览。")
 
     # 步骤2：遍历目录，生成 Sidebar 配置
     sidebar = []

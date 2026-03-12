@@ -1,0 +1,7 @@
+【来源】: ArXiv
+【标题】: COMIC: Agentic Sketch Comedy Generation
+【作者】: Susung Hong, Brian Curless, Ira Kemelmacher-Shlizerman, Steve Seitz
+【链接】: https://arxiv.org/pdf/2603.11048v1
+
+【摘要】:
+We propose a fully automated AI system that produces short comedic videos similar to sketch shows such as Saturday Night Live. Starting with character references, the system employs a population of agents loosely based on real production studio roles, structured to optimize the quality and diversity of ideas and outputs through iterative competition, evaluation, and improvement. A key contribution is the introduction of LLM critics aligned with real viewer preferences through the analysis of a corpus of comedy videos on YouTube to automatically evaluate humor. Our experiments show that our framework produces results approaching the quality of professionally produced sketches while demonstrating state-of-the-art performance in video generation.

@@ -1,0 +1,7 @@
+【来源】: ArXiv
+【标题】: LiTo: Surface Light Field Tokenization
+【作者】: Jen-Hao Rick Chang, Xiaoming Zhao, Dorian Chan, Oncel Tuzel
+【链接】: https://arxiv.org/pdf/2603.11047v1
+
+【摘要】:
+We propose a 3D latent representation that jointly models object geometry and view-dependent appearance. Most prior works focus on either reconstructing 3D geometry or predicting view-independent diffuse appearance, and thus struggle to capture realistic view-dependent effects. Our approach leverages that RGB-depth images provide samples of a surface light field. By encoding random subsamples of this surface light field into a compact set of latent vectors, our model learns to represent both geometry and appearance within a unified 3D latent space. This representation reproduces view-dependent effects such as specular highlights and Fresnel reflections under complex lighting. We further train a latent flow matching model on this representation to learn its distribution conditioned on a single input image, enabling the generation of 3D objects with appearances consistent with the lighting and materials in the input. Experiments show that our approach achieves higher visual quality and better input fidelity than existing methods.
