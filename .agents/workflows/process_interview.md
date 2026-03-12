@@ -14,6 +14,6 @@ description: 自动批处理面试题库并更新静态知识库
 遍历生成的多级分类目录，自动更新站点左侧导航树。
 使用终端执行命令：`python workflow_scripts/build_docs.py`
 
-3. 部署知识库到 Web & 更新 Github 源码
-部署最新的前端代码到 Github Pages，并提交所有源码包。
-使用终端执行命令：`npm run docs:deploy; git add .; git commit -m "auto: 更新面试题解析和静态站点"; git push origin master`
+3. 同步最新版题库和源代码到 Github
+推送 master 分支后，云端 Github Actions 会自动编译部署并上线 VitePress 静态页面！
+使用终端执行命令：`git add .; git commit -m "auto: 更新面试题解析和静态站点"; git push origin main`

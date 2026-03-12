@@ -74,6 +74,7 @@ import {{ defineConfig }} from 'vitepress'
 export default defineConfig({{
   title: "LLM 面试题库",
   description: "AI 自动提取与全量解析",
+  base: "/llm_interview_auto_fetch/",
   themeConfig: {{
     nav: [
       {{ text: '🏠 首页', link: '/' }},

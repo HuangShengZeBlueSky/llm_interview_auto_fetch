@@ -14,4 +14,5 @@ description: 自动总结最近知识库脉络与洞察
 使用终端执行命令：`python workflow_scripts/build_docs.py`
 
 3. 同步至 Github
-使用终端执行命令：`git add docs/insights/; git commit -m "auto: 生成新的周报总结"; git push origin master`
+推送 main 分支后，云端会自动更新知识库网站！
+使用终端执行命令：`git add docs/insights/; git commit -m "auto: 生成新的周报总结"; git push origin main`
