@@ -1,8 +1,8 @@
 # 配置文件: 自动化处理大模型面试题库
 llm:
   api_key_env_var: "LLM_API_KEY"
-  base_url: "https://api123.icu/v1"
-  model: "claude-opus-4-6"
+  base_url: "http://69.5.22.109:8004/v1"
+  model: "gemini-3.1-pro-preview"
 
 paths:
   raw_data: "raw_data"        # 存放未处理的图片/文本

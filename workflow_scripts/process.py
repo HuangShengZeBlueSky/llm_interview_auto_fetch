@@ -81,7 +81,8 @@ def main():
         
     client = OpenAI(
         api_key=api_key,
-        base_url=config['llm']['base_url']
+        base_url=config['llm']['base_url'],
+        timeout=300.0  # 5分钟超时，避免大文件处理时 504 网关超时
     )
     model_name = config['llm']['model']
     paths = config['paths']
