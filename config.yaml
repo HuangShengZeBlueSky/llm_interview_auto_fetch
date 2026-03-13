@@ -5,8 +5,10 @@ llm:
   model: "gemini-3.1-pro-preview"
 
 paths:
-  raw_data: "raw_data"        # 存放未处理的图片/文本
-  archive: "archive"          # 存放处理完毕的文件
-  reports: "reports"          # 存放生成的 Markdown 报告
-  prompts: "prompts"          # 存放提示词模板
-  taxonomy: "taxonomy.yaml"   # 分类系统词汇库
+  raw_data: "raw_data"                # 面经原始资料入口（图片 / 文本 / PDF）
+  raw_data_papers: "raw_data_papers"  # 论文原始资料入口（OpenReview / ArXiv / PDF / 文本）
+  raw_data_courses: "raw_data_courses" # 课程笔记原始资料入口
+  archive: "archive"                  # 处理完毕后的归档根目录
+  reports: "reports"                  # Markdown 报告根目录
+  prompts: "prompts"                  # 提示词模板
+  taxonomy: "taxonomy.yaml"           # 分类系统词汇库

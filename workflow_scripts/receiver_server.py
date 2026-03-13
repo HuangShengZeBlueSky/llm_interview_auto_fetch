@@ -11,13 +11,18 @@ import subprocess
 from datetime import datetime
 from fastapi import FastAPI, UploadFile, File, Form, BackgroundTasks
 import uvicorn
-from pydantic import BaseModel
+import yaml
 
 app = FastAPI(title="大模型面试题库 Webhook 接收端")
 
+def load_config(config_path):
+    with open(config_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
 # 确保目录存在
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RAW_DATA_DIR = os.path.join(BASE_DIR, "raw_data")
+CONFIG = load_config(os.path.join(BASE_DIR, "config.yaml"))
+RAW_DATA_DIR = os.path.join(BASE_DIR, CONFIG.get("paths", {}).get("raw_data", "raw_data"))
 os.makedirs(RAW_DATA_DIR, exist_ok=True)
 
 def trigger_workflow():
@@ -69,5 +74,5 @@ async def upload_data(
 
 if __name__ == "__main__":
     print(f"[*] Webhook 服务器启动！监听端口 8000")
-    print(f"[*] POST 接口地址: http://127.0.0.0:8000/upload")
+    print(f"[*] POST 接口地址: http://127.0.0.1:8000/upload")
     uvicorn.run(app, host="0.0.0.0", port=8000)

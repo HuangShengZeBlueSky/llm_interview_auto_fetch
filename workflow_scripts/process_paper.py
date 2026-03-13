@@ -12,6 +12,7 @@ import re
 from datetime import datetime
 from openai import OpenAI
 from dotenv import load_dotenv
+from ingest_utils import PDF_EXTENSIONS, TEXT_EXTENSIONS, extract_text_from_pdf, read_text_file
 
 load_dotenv()
 
@@ -39,6 +40,17 @@ def parse_json_from_llm(text):
                 pass
     return {"tags": ["其他"], "new_proposed_tags": []}
 
+
+def dedupe_preserve_order(items, default_value):
+    seen = set()
+    result = []
+    for item in items or []:
+        normalized = str(item).strip()
+        if normalized and normalized not in seen:
+            seen.add(normalized)
+            result.append(normalized)
+    return result or [default_value]
+
 def main():
     print("[*] 正在加载论文解析流...")
     config = load_config()
@@ -50,9 +62,10 @@ def main():
     model_name = config['llm']['model']
     
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    RAW_DIR = os.path.join(BASE_DIR, "raw_data_papers")
-    REPORT_DIR = os.path.join(BASE_DIR, "reports", "论文精读")
-    ARCHIVE_DIR = os.path.join(BASE_DIR, "archive", "papers")
+    paths = config.get("paths", {})
+    RAW_DIR = os.path.join(BASE_DIR, paths.get("raw_data_papers", "raw_data_papers"))
+    REPORT_DIR = os.path.join(BASE_DIR, paths.get("reports", "reports"), "论文精读")
+    ARCHIVE_DIR = os.path.join(BASE_DIR, paths.get("archive", "archive"), "papers")
     
     os.makedirs(REPORT_DIR, exist_ok=True)
     os.makedirs(ARCHIVE_DIR, exist_ok=True)
@@ -70,8 +83,19 @@ def main():
         if os.path.isdir(file_path): continue
             
         print(f"\n[->] 阅读文献: {filename}")
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
+        file_ext = os.path.splitext(filename)[1].lower()
+        if file_ext in TEXT_EXTENSIONS:
+            content = read_text_file(file_path)
+        elif file_ext in PDF_EXTENSIONS:
+            content, pdf_warnings = extract_text_from_pdf(file_path)
+            for warning in pdf_warnings:
+                print(f"    [PDF] {warning}")
+            if not content.strip():
+                print("    [!] 跳过该 PDF：未提取到可用文本，请先安装 pypdf/PyMuPDF 或转为文本版 PDF。")
+                continue
+        else:
+            print(f"    [!] 跳过格式: {file_ext}")
+            continue
             
         try:
             # Stage 1: 分类与打标
@@ -91,14 +115,15 @@ def main():
             )
             meta_info = parse_json_from_llm(res_s1.choices[0].message.content)
             
-            tags = meta_info.get("tags", ["其他"])
+            tags = dedupe_preserve_order(meta_info.get("tags", ["其他"]), "其他")
             main_tag = tags[0].replace("/", "_") if tags else "其他"
-            new_tags = meta_info.get("new_proposed_tags", [])
+            new_tags = dedupe_preserve_order(meta_info.get("new_proposed_tags", []), "")
+            new_tags = [tag for tag in new_tags if tag]
             
             taxonomy_updated = False
-            for nt in new_tags:
-                if nt and nt not in taxonomy['papers_tags']:
-                    taxonomy['papers_tags'].append(nt)
+            for tag_candidate in tags + new_tags:
+                if tag_candidate and tag_candidate not in taxonomy['papers_tags']:
+                    taxonomy['papers_tags'].append(tag_candidate)
                     taxonomy_updated = True
             if taxonomy_updated:
                 save_taxonomy(taxonomy, taxonomy_path)
@@ -140,8 +165,10 @@ def main():
             report_path = os.path.join(tag_report_dir, f"{timestamp}_Paper_{basename}.md")
             with open(report_path, "w", encoding="utf-8") as f:
                 f.write(report_content)
-                
+            
             archive_path = os.path.join(tag_archive_dir, filename)
+            if os.path.exists(archive_path):
+                archive_path = os.path.join(tag_archive_dir, f"{timestamp}_{filename}")
             shutil.move(file_path, archive_path)
             print(f"    - [√] 论文精读保存: {report_path}")
             

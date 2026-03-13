@@ -18,9 +18,13 @@ def load_config(config_path="config.yaml"):
 def get_recent_reports(reports_dir, max_files=10):
     """扫描所有子目录，按文件名（带时间戳）倒序拿最近的 N 个 Markdown"""
     all_files = []
+    excluded_roots = {"00_行业洞察", "论文精读", "体系化课程"}
     for root, _, files in os.walk(reports_dir):
         # 忽略已经生成的洞察报告
         if '00_行业洞察' in root:
+            continue
+        relative_root = os.path.relpath(root, reports_dir)
+        if relative_root != "." and relative_root.split(os.sep, 1)[0] in excluded_roots:
             continue
         for f in files:
             if f.endswith('.md'):

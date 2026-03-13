@@ -22,7 +22,6 @@
 
 import os
 import shutil
-import base64
 import yaml
 import time
 import json
@@ -30,6 +29,14 @@ import re
 from datetime import datetime
 from openai import OpenAI
 from dotenv import load_dotenv
+from ingest_utils import (
+    IMAGE_EXTENSIONS,
+    PDF_EXTENSIONS,
+    TEXT_EXTENSIONS,
+    build_image_message_parts,
+    read_pdf_as_text_or_images,
+    read_text_file,
+)
 
 # 加载 .env 文件（如果存在）
 load_dotenv()
@@ -44,7 +51,7 @@ def load_config(config_path="config.yaml"):
 
 def load_taxonomy(yaml_path="taxonomy.yaml"):
     if not os.path.exists(yaml_path):
-        return {"companies": ["未知"], "tags": ["其他"]}
+        return {"interviews_companies": ["未知"], "interviews_tags": ["其他"]}
     with open(yaml_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
@@ -57,10 +64,6 @@ def load_prompt(prompt_path):
         return "你是一个资深大模型算法工程师，请详细解答以下问题。" 
     with open(prompt_path, "r", encoding="utf-8") as f:
         return f.read()
-
-def encode_image_base64(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
 
 def init_directories(paths):
     for key, path in paths.items():
@@ -82,6 +85,55 @@ def parse_json_from_llm(text):
                 pass
     return {"company": "未知", "tags": ["其他"], "new_proposed_tags": []}
 
+
+def dedupe_preserve_order(items, default_value):
+    seen = set()
+    result = []
+    for item in items or []:
+        normalized = str(item).strip()
+        if normalized and normalized not in seen:
+            seen.add(normalized)
+            result.append(normalized)
+    return result or [default_value]
+
+
+def normalize_interview_taxonomy(taxonomy):
+    taxonomy = taxonomy or {}
+    changed = False
+
+    legacy_companies = taxonomy.pop("companies", None)
+    legacy_tags = taxonomy.pop("tags", None)
+    if legacy_companies is not None or legacy_tags is not None:
+        changed = True
+
+    if "interviews_companies" not in taxonomy:
+        taxonomy["interviews_companies"] = legacy_companies or ["未知"]
+        changed = True
+    if "interviews_tags" not in taxonomy:
+        taxonomy["interviews_tags"] = legacy_tags or ["其他"]
+        changed = True
+
+    taxonomy["interviews_companies"] = dedupe_preserve_order(
+        taxonomy.get("interviews_companies"), "未知"
+    )
+    taxonomy["interviews_tags"] = dedupe_preserve_order(
+        taxonomy.get("interviews_tags"), "其他"
+    )
+
+    if "未知" not in taxonomy["interviews_companies"]:
+        taxonomy["interviews_companies"].append("未知")
+        changed = True
+    if "其他" not in taxonomy["interviews_tags"]:
+        taxonomy["interviews_tags"].append("其他")
+        changed = True
+
+    return taxonomy, changed
+
+
+def sanitize_label(value, fallback):
+    cleaned = str(value or "").strip().replace("/", "_")
+    return cleaned or fallback
+
 # ==================== 核心主流程 ====================
 
 def main():
@@ -90,6 +142,9 @@ def main():
     paths = config['paths']
     taxonomy_path = paths.get('taxonomy', 'taxonomy.yaml')
     taxonomy = load_taxonomy(taxonomy_path)
+    taxonomy, taxonomy_changed = normalize_interview_taxonomy(taxonomy)
+    if taxonomy_changed:
+        save_taxonomy(taxonomy, taxonomy_path)
     
     api_key_env_name = config['llm'].get('api_key_env_var', 'LLM_API_KEY')
     api_key = os.environ.get(api_key_env_name)
@@ -127,16 +182,21 @@ def main():
         
         # 提取文件内容格式 (文本或图片 Base64)
         input_content = None
-        if file_ext in ['.txt', '.md']:
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
+        if file_ext in TEXT_EXTENSIONS:
+            content = read_text_file(file_path)
             input_content = f"原文件名：{filename}\n请解析这段文本：\n{content}"
-        elif file_ext in ['.png', '.jpg', '.jpeg']:
-            base64_img = encode_image_base64(file_path)
-            input_content = [
-                {"type": "text", "text": f"原文件名：{filename}\n请解析这张图里的面试题。"},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}}
-            ]
+        elif file_ext in IMAGE_EXTENSIONS:
+            input_content = build_image_message_parts(
+                file_path,
+                f"原文件名：{filename}\n请解析这张图里的面试题。",
+            )
+        elif file_ext in PDF_EXTENSIONS:
+            input_content, pdf_warnings = read_pdf_as_text_or_images(
+                file_path,
+                f"原文件名：{filename}\n请解析这份 PDF 中的面试题，识别所有技术题并逐题解答。",
+            )
+            for warning in pdf_warnings:
+                print(f"    [PDF] {warning}")
         else:
             print(f"    [!] 跳过格式: {file_ext}")
             continue
@@ -147,8 +207,8 @@ def main():
             # ---------------------------------------------------------
             print("    [Stage 1] 正在让 AI 识别公司与知识标签...")
             system_prompt_s1 = f"""你是一个智能分类器。请阅读用户提供的面试题。
-已知存在的公司有：{taxonomy['companies']}
-已知存在的知识标签有：{taxonomy['tags']}
+已知存在的公司有：{taxonomy['interviews_companies']}
+已知存在的知识标签有：{taxonomy['interviews_tags']}
 
 请判断这些题目属于哪家公司，并选出1到2个最贴切的标签。
 如果预设标签完全不符合，你可以在 new_proposed_tags 中提出 1 个最新的精华前沿标签（如没有则留空）。
@@ -173,21 +233,22 @@ def main():
             s1_text = resp_s1.choices[0].message.content
             meta_info = parse_json_from_llm(s1_text)
             
-            company = meta_info.get("company", "未知").replace("/", "_")
-            tags = meta_info.get("tags", ["其他"])
-            main_tag = tags[0].replace("/", "_") if tags else "其他"
-            new_tags = meta_info.get("new_proposed_tags", [])
+            company = sanitize_label(meta_info.get("company", "未知"), "未知")
+            tags = dedupe_preserve_order(meta_info.get("tags", ["其他"]), "其他")
+            main_tag = sanitize_label(tags[0], "其他")
+            new_tags = dedupe_preserve_order(meta_info.get("new_proposed_tags", []), "")
+            new_tags = [tag for tag in new_tags if tag]
             
             print(f"    - 识别结果：公司[{company}], 标签{tags}, 新提议标签{new_tags}")
             
             # 自动维护 Taxonomy
             taxonomy_updated = False
-            if company not in taxonomy['companies'] and company != "未知":
-                taxonomy['companies'].append(company)
+            if company not in taxonomy['interviews_companies'] and company != "未知":
+                taxonomy['interviews_companies'].append(company)
                 taxonomy_updated = True
-            for nt in new_tags:
-                if nt and nt not in taxonomy['tags']:
-                    taxonomy['tags'].append(nt)
+            for tag_candidate in tags + new_tags:
+                if tag_candidate and tag_candidate not in taxonomy['interviews_tags']:
+                    taxonomy['interviews_tags'].append(tag_candidate)
                     taxonomy_updated = True
             if taxonomy_updated:
                 save_taxonomy(taxonomy, taxonomy_path)

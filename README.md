@@ -1,57 +1,128 @@
-# 🧠 大模型面试题库全自动处理系统 (V2)
+# 大模型面试题库全自动处理系统
 
-> 🚀 **本项目已上线独立的静态百科网页，请访问：**
-> 👉 **[LLM 面经自动知识库 (GitHub Pages)](https://HuangShengZeBlueSky.github.io/llm_interview_auto_fetch/)** 👈
+> 在线站点：<https://HuangShengZeBlueSky.github.io/llm_interview_auto_fetch/>
 
-这套系统实现了从“随意接收面经截图/文本”到“生成万字解析、智能分类建库、生成周报洞察、最终渲染静态网站发布”的 **全链路工作流**。
+这个仓库现在已经不是单一的“面经解析脚本”，而是一套完整的知识库流水线：
 
----
+1. 收资料：截图、文本、PDF、论文摘要、课程笔记。
+2. 做结构化：分类、深度解析、自动归档。
+3. 出结果：生成 `reports/`，再发布到 `docs/` 的 VitePress 站点。
 
-## ✨ 核心大版本升级 (System V2)
+## 仓库结构
 
-1. **AI 全自动分类路由**：采用 Two-Stage Pipeline。Stage 1 先用大模型智能识别面经属于“哪家公司”和“什么知识点标签”，然后根据 `taxonomy.yaml` 动态建立多级目录。
-2. **知识库网站化**：引入 `VitePress`，每次处理完自动编译成带有左侧边栏、支持全站搜索的现代静态网站，并通过 GitHub Actions 全自动部署。
-3. **宏观风向标洞察**：新增 `/generate_insight` 工作流，大模型自动拉取最近面经，提炼本周技术红榜和面试连环追问套路。
-4. **无头收单器 Webhook**：提供 `receiver_server.py`，支持 iOS 快捷指令、微信机器人等一键推送图片，后台静默处理全流程。
-
-## 📁 核心目录结构 (IPO 模型)
-
-```
-llm_interview_auto_fetch/
-├── raw_data/                ← 【Input】外部推送或手动存放的待处理验证截图/文本
-├── reports/                 ← 【Output】按 <公司>/<知识点> 分类存放的 Markdown 报告
-├── archive/                 ← 【Output】处理成功的原始文件自动移入并结构化归档
-├── docs/                    ← 【Output】VitePress 网站源码核心目录
-├── workflow_scripts/        ← 【Process】所有的自动化脚本逻辑
-│   ├── process.py           ← 两阶段分类问答引擎
-│   ├── build_docs.py        ← VitePress 路由自动构建脚本
-│   ├── insight.py           ← 周报洞察生成器
-│   └── receiver_server.py   ← FastAPI Webhook 接收端
-├── config.yaml              ← 核心配置
-├── taxonomy.yaml            ← AI 分类体系词库管理记录
-├── .env                     ← 🔑 你的大模型密钥（切勿泄露）
-└── README.md
+```text
+大模型面试题库/
+├─ raw_data/                    # 面经原始资料入口
+├─ raw_data_papers/             # 论文原始资料入口
+├─ raw_data_courses/            # 课程原始资料入口
+├─ archive/                     # 原始资料归档
+├─ reports/                     # Markdown 结果区
+├─ docs/                        # VitePress 站点
+├─ workflow_scripts/            # 所有自动化脚本
+├─ config.yaml                  # 模型与路径配置
+├─ taxonomy.yaml                # 公司 / 标签 / 论文方向词表
+└─ requirements.txt
 ```
 
-## 🚀 快速使用指南
+`workflow_scripts/` 里最关键的入口：
 
-### 方式一：终端命令运行 (本地调试)
-1. 把待处理的面试题文件丢进 `raw_data/`
-2. 运行 V2 引擎处理引擎：
-   ```bash
-   python workflow_scripts/process.py
-   python workflow_scripts/build_docs.py
-   npm run docs:build
-   ```
+- `process.py`：面经解析主流程，支持文本 / 图片 / PDF
+- `process_paper.py`：论文精读主流程，支持文本 / PDF
+- `process_course.py`：课程笔记精编主流程
+- `collect_openreview.py`：按 accepted + review score 抓 OpenReview 论文
+- `scraper_arxiv.py`：抓 ArXiv 最新论文
+- `insight.py`：从最近面经里生成风向标周报
+- `build_docs.py`：把 `reports/` 生成到 VitePress
+- `receiver_server.py`：Webhook 收图收文入口
 
-### 方式二：一键全自动收单 (日常使用篇)
-1. 启动本机的无人值守 Webhook 服务器：
-   ```bash
-   python workflow_scripts/receiver_server.py
-   ```
-2. 服务器将在局域网暴露出一个 `http://<本机IP>:8000/upload` 接口。
-3. 在你的 iPhone 上写一个快捷指令，选择图片后 `POST` 传输到该接口。
-4. **完毕**。服务端会在接收图片后自动唤起后台大模型进行分类解答、归档，你只需等待片刻即可去 GitHub 查看更新。
+更详细的目录图和使用说明见 [docs/repo-structure.md](docs/repo-structure.md)。
 
-## 🔒 隐私与安全说明
-核心 API Key 只存放在 `.env` 文件或系统环境变量中，已配置严格的 `.gitignore` 保护机制，全量开源至分支不会泄露配置。
+## 你的当前两类需求
+
+### 1. 互联网大厂面经采集
+
+适合的资料来源：
+
+- 小红书截图
+- 小红书正文复制后的文本
+- 面经 PDF 合集
+- 群聊整理稿、Word 导出的文本
+
+推荐流程：
+
+```bash
+python workflow_scripts/process.py
+python workflow_scripts/insight.py
+python workflow_scripts/build_docs.py
+npm run docs:build
+```
+
+默认把面经原始资料放进 `raw_data/`。  
+处理完成后会进入：
+
+- `archive/<公司>/<标签>/`
+- `reports/<公司>/<标签>/`
+
+### 2. 顶会论文采集
+
+推荐做法是把“采集”和“精读”分成两步：
+
+1. 先从官方源抓论文元数据
+2. 再把结果交给 LLM 生成中文精读
+
+ICLR 2026 accepted 高分论文示例：
+
+```bash
+python workflow_scripts/collect_openreview.py ^
+  --invitation ICLR.cc/2026/Conference/-/Submission ^
+  --accepted-venueid ICLR.cc/2026/Conference ^
+  --venue-label "ICLR 2026" ^
+  --min-avg-rating 7.5 ^
+  --max-results 20
+
+python workflow_scripts/process_paper.py
+python workflow_scripts/build_docs.py
+npm run docs:build
+```
+
+这会把命中的论文先写进 `raw_data_papers/`，并在 `archive/papers/_manifests/` 保留 manifest。
+
+## 安装
+
+```bash
+python -m pip install -r requirements.txt
+npm install
+```
+
+如果你要处理扫描版 PDF，建议安装 `PyMuPDF`；如果只是文本版 PDF，`pypdf` 就够用。
+
+## 快速开始
+
+### 本地批处理
+
+```bash
+python workflow_scripts/process.py
+python workflow_scripts/process_paper.py
+python workflow_scripts/process_course.py
+python workflow_scripts/build_docs.py
+npm run docs:build
+```
+
+### Webhook 收单
+
+```bash
+python workflow_scripts/receiver_server.py
+```
+
+服务会暴露 `http://<你的IP>:8000/upload`，支持表单上传图片或文本。
+
+## 说明
+
+`taxonomy.yaml` 负责维护三套词表：
+
+- `interviews_companies`
+- `interviews_tags`
+- `papers_tags`
+- `courses_tags`
+
+面经主流程现在会自动兼容旧版 `companies/tags` 写法，并在运行时修正为新版词表结构。

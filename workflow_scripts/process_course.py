@@ -51,9 +51,10 @@ def main():
     model_name = config['llm']['model']
     
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    RAW_DIR = os.path.join(BASE_DIR, "raw_data_courses")
-    REPORT_DIR = os.path.join(BASE_DIR, "reports", "体系化课程")
-    ARCHIVE_DIR = os.path.join(BASE_DIR, "archive", "courses")
+    paths = config.get("paths", {})
+    RAW_DIR = os.path.join(BASE_DIR, paths.get("raw_data_courses", "raw_data_courses"))
+    REPORT_DIR = os.path.join(BASE_DIR, paths.get("reports", "reports"), "体系化课程")
+    ARCHIVE_DIR = os.path.join(BASE_DIR, paths.get("archive", "archive"), "courses")
     
     os.makedirs(REPORT_DIR, exist_ok=True)
     os.makedirs(ARCHIVE_DIR, exist_ok=True)
@@ -134,8 +135,10 @@ def main():
             report_path = os.path.join(tag_report_dir, f"{timestamp}_Note_{basename}.md")
             with open(report_path, "w", encoding="utf-8") as f:
                 f.write(report_content)
-                
+            
             archive_path = os.path.join(tag_archive_dir, filename)
+            if os.path.exists(archive_path):
+                archive_path = os.path.join(tag_archive_dir, f"{timestamp}_{filename}")
             shutil.move(file_path, archive_path)
             print(f"    - [√] 教材级笔记已保存: {report_path}")
             

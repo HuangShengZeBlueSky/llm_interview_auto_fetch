@@ -8,13 +8,16 @@ import os
 import re
 import arxiv
 from datetime import datetime
+import yaml
 
 # 搜索关键词，拉取大模型相关的论文
 SEARCH_QUERY = 'cat:cs.CL OR cat:cs.AI OR all:"Large Language Model"'
 MAX_RESULTS = 5  # 每次仅抓取最新 5 篇
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_DIR = os.path.join(BASE_DIR, "raw_data_papers")
+with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
+    CONFIG = yaml.safe_load(f)
+OUTPUT_DIR = os.path.join(BASE_DIR, CONFIG.get("paths", {}).get("raw_data_papers", "raw_data_papers"))
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def fetch_arxiv_papers():

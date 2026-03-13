@@ -7,7 +7,8 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: '🏠 首页', link: '/' },
-      { text: '📚 题库大全', link: '/reports/' }
+      { text: '📚 题库大全', link: '/reports/' },
+      { text: '🧭 仓库结构', link: '/repo-structure' }
     ],
     sidebar: {
       '/reports/': [
@@ -42,6 +43,22 @@ export default defineConfig({
                               {
                                     "text": "Note_CS224N_Lecture1_Notes",
                                     "link": "/reports/体系化课程/CS224N (NLP基础)/20260312_165246_Note_CS224N_Lecture1_Notes"
+                              }
+                        ]
+                  }
+            ]
+      },
+      {
+            "text": "复试准备",
+            "collapsed": false,
+            "items": [
+                  {
+                        "text": "RAG与多智能体",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "RAG优化与多智能体方案",
+                                    "link": "/reports/复试准备/RAG与多智能体/20260312_复试项目深挖_RAG优化与多智能体方案"
                               }
                         ]
                   }

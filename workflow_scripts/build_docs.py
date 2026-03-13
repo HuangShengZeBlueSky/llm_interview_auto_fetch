@@ -78,7 +78,8 @@ export default defineConfig({{
   themeConfig: {{
     nav: [
       {{ text: '🏠 首页', link: '/' }},
-      {{ text: '📚 题库大全', link: '/reports/' }}
+      {{ text: '📚 题库大全', link: '/reports/' }},
+      {{ text: '🧭 仓库结构', link: '/repo-structure' }}
     ],
     sidebar: {{
       '/reports/': {json.dumps(sidebar, ensure_ascii=False, indent=6)}
