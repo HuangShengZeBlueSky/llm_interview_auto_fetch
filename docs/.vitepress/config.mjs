@@ -46,6 +46,26 @@ export default defineConfig({
             "collapsed": false,
             "items": [
                   {
+                        "text": "专题题库",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "AI算法高频题",
+                                    "collapsed": true,
+                                    "items": [
+                                          {
+                                                "text": "大厂AI算法高频题按模块分类",
+                                                "link": "/reports/专题题库/AI算法高频题/20260313_大厂AI算法高频题按模块分类"
+                                          },
+                                          {
+                                                "text": "大厂AI算法高频题总表",
+                                                "link": "/reports/专题题库/AI算法高频题/20260313_大厂AI算法高频题总表"
+                                          }
+                                    ]
+                              }
+                        ]
+                  },
+                  {
                         "text": "复试准备",
                         "collapsed": true,
                         "items": [
@@ -120,6 +140,26 @@ export default defineConfig({
             "collapsed": false,
             "items": [
                   {
+                        "text": "高分论文索引",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "顶会高分论文总览",
+                                    "link": "/reports/论文精读/高分论文索引/20260313_顶会高分论文总览"
+                              }
+                        ]
+                  },
+                  {
+                        "text": "AI for Science",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "AI for Science",
+                                    "link": "/reports/论文精读/AI-for-Science/20260313_顶会高分论文_AI-for-Science"
+                              }
+                        ]
+                  },
+                  {
                         "text": "Agent & Planning",
                         "collapsed": true,
                         "items": [
@@ -130,9 +170,53 @@ export default defineConfig({
                         ]
                   },
                   {
+                        "text": "Agents & Tool Use",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "Agents & Tool Use",
+                                    "link": "/reports/论文精读/Agents-and-Tool-Use/20260313_顶会高分论文_Agents-and-Tool-Use"
+                              }
+                        ]
+                  },
+                  {
+                        "text": "Alignment & Post-training",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "Alignment & Post-training",
+                                    "link": "/reports/论文精读/Alignment-and-Post-training/20260313_顶会高分论文_Alignment-and-Post-training"
+                              }
+                        ]
+                  },
+                  {
+                        "text": "Efficiency & Systems",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "Efficiency & Systems",
+                                    "link": "/reports/论文精读/Efficiency-and-Systems/20260313_顶会高分论文_Efficiency-and-Systems"
+                              }
+                        ]
+                  },
+                  {
+                        "text": "Evaluation & Benchmarks",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "Evaluation & Benchmarks",
+                                    "link": "/reports/论文精读/Evaluation-and-Benchmarks/20260313_顶会高分论文_Evaluation-and-Benchmarks"
+                              }
+                        ]
+                  },
+                  {
                         "text": "Multimodal Models",
                         "collapsed": true,
                         "items": [
+                              {
+                                    "text": "Multimodal Models",
+                                    "link": "/reports/论文精读/Multimodal-Models/20260313_顶会高分论文_Multimodal-Models"
+                              },
                               {
                                     "text": "Paper_arxiv_20260312125327_V2M-Zero ",
                                     "link": "/reports/论文精读/Multimodal-Models/20260312_165448_Paper_arxiv_20260312125327_V2M-Zero"
@@ -146,6 +230,36 @@ export default defineConfig({
                               {
                                     "text": "Paper_LoRA_Paper_Abstract",
                                     "link": "/reports/论文精读/Parameter-Efficient-Fine-Tuning/20260312_165521_Paper_LoRA_Paper_Abstract"
+                              }
+                        ]
+                  },
+                  {
+                        "text": "RAG & Knowledge Editing",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "RAG & Knowledge Editing",
+                                    "link": "/reports/论文精读/RAG-and-Knowledge-Editing/20260313_顶会高分论文_RAG-and-Knowledge-Editing"
+                              }
+                        ]
+                  },
+                  {
+                        "text": "Reasoning & CoT",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "Reasoning & CoT",
+                                    "link": "/reports/论文精读/Reasoning-and-CoT/20260313_顶会高分论文_Reasoning-and-CoT"
+                              }
+                        ]
+                  },
+                  {
+                        "text": "World Models & Robotics",
+                        "collapsed": true,
+                        "items": [
+                              {
+                                    "text": "World Models & Robotics",
+                                    "link": "/reports/论文精读/World-Models-and-Robotics/20260313_顶会高分论文_World-Models-and-Robotics"
                               }
                         ]
                   },

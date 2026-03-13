@@ -1,0 +1,626 @@
+{
+  "generated_at": "2026-03-13T18:00:13",
+  "records": [
+    {
+      "title": "Special Unitary Parameterized Estimators of Rotation",
+      "authors": [
+        "Akshay Chandrasekhar"
+      ],
+      "keywords": [
+        "optimization",
+        "special unitary",
+        "rotation estimation",
+        "quaternion",
+        "learning rotations",
+        "machine learning",
+        "Wahba's Problem"
+      ],
+      "abstract": "This paper revisits the topic of rotation estimation through the lens of special unitary matrices. We begin by reformulating Wahba’s problem using $SU(2)$ to derive multiple solutions that yield linear constraints on corresponding quaternion parameters. We then explore applications of these constraints by formulating efficient methods for related problems. Finally, from this theoretical foundation, we propose two novel continuous representations for learning rotations in neural networks. Extensive experiments validate the effectiveness of the proposed methods.",
+      "forum_url": "https://openreview.net/forum?id=VaS6xcDrTb",
+      "pdf_url": "https://openreview.net/pdf/502b1bfe65a68fe392fb3fe83f6cefc0b875c9f6.pdf",
+      "venue_label": "ICLR 2026",
+      "avg_rating": 8.5,
+      "review_count": 4,
+      "module": "Reasoning & CoT"
+    },
+    {
+      "title": "Transducing Language Models",
+      "authors": [
+        "Vésteinn Snæbjarnarson",
+        "Samuel Kiegeland",
+        "Tianyu Liu",
+        "Reda Boumasmoud",
+        "Ryan Cotterell",
+        "Tim Vieira"
+      ],
+      "keywords": [
+        "language models",
+        "tokenization",
+        "automata",
+        "transducers"
+      ],
+      "abstract": "Modern language models define distributions over strings, but downstream tasks often require different output formats. For instance, a model that generates byte-pair strings does not directly produce word-level predictions, and a DNA model does not directly produce amino-acid sequences. In such cases, a deterministic string-to-string transformation can convert the model's output to the desired form.\nThis is a familiar pattern in probability theory: applying a function $f$ to a random variable $X\\sim p$ yields a transformed random variable $f(X)$ with an induced distribution. While such transformations are occasionally used in language modeling, prior work does not treat them as yielding new, fully functional language models. We formalize this perspective and introduce a general framework for language models derived from deterministic string-to-string transformations. We focus on transformations representable as finite-state transducers---a commonly used state-machine abstraction for efficient string-to-string mappings. We develop algorithms that compose a language model with an FST to *marginalize* over source strings mapping to a given target, propagating probabilities through the transducer without altering model parameters and enabling *conditioning* on transformed outputs. We present an exact algorithm, an efficient approximation, and a theoretical analysis. We conduct experiments in three domains: converting language models from tokens to bytes, from tokens to words, and from DNA to amino acids. These experiments demonstrate inference-time adaptation of pretrained language models to match application-specific output requirements.",
+      "forum_url": "https://openreview.net/forum?id=qOyF214xmg",
+      "pdf_url": "https://openreview.net/pdf/e42a170c8a6fe926bded90f3e0462e70cd58eae6.pdf",
+      "venue_label": "ICLR 2026",
+      "avg_rating": 8.0,
+      "review_count": 4,
+      "module": "Efficiency & Systems"
+    },
+    {
+      "title": "The Polar Express: Optimal Matrix Sign Methods and their Application to the Muon Algorithm",
+      "authors": [
+        "Noah Amsel",
+        "David Persson",
+        "Christopher Musco",
+        "Robert M. Gower"
+      ],
+      "keywords": [
+        "polar decomposition",
+        "matrix sign",
+        "numerical linear algebra",
+        "muon",
+        "optimization",
+        "approximation theory"
+      ],
+      "abstract": "Computing the polar decomposition and the related matrix sign function has been a well-studied problem in numerical analysis for decades. Recently, it has emerged as an important subroutine  within the Muon algorithm for training deep neural networks.\nHowever, the requirements of this application differ sharply from classical settings: deep learning demands GPU-friendly algorithms that prioritize high throughput over high precision. We introduce *Polar Express*, a new method for computing the polar decomposition. Like Newton–Schulz and other classical polynomial methods, our approach uses only matrix-matrix multiplications, making it \nvery efficient on GPUs.\nInspired by earlier work of Chen \\& Chow and Nakatsukasa \\& Freund, *Polar Express* adapts the update rule at each iteration by solving a minimax optimization problem.\nWe prove that this strategy minimizes error in a worst-case sense, allowing *Polar Express* to converge as rapidly as possible both in the early iterations and asymptotically.\nWe also address finite-precision issues, making it practical to use in `bfloat16`. When integrated into Muon, our method yields consistent improvements in validation loss for a GPT-2 model on one to ten billion tokens from the FineWeb dataset, outperforming recent alternatives across a range of learning rates.",
+      "forum_url": "https://openreview.net/forum?id=yRtgZ1K8hO",
+      "pdf_url": "https://openreview.net/pdf/24e5176786c6df9fed3eacbd4474518a254f6f9b.pdf",
+      "venue_label": "ICLR 2026",
+      "avg_rating": 8.0,
+      "review_count": 4,
+      "module": "Evaluation & Benchmarks"
+    },
+    {
+      "title": "Text-to-3D by Stitching a Multi-view Reconstruction Network to a Video Generator",
+      "authors": [
+        "Hyojun Go",
+        "Dominik Narnhofer",
+        "Goutam Bhat",
+        "Prune Truong",
+        "Federico Tombari",
+        "Konrad Schindler"
+      ],
+      "keywords": [
+        "Text-to-3D generation",
+        "Video Diffusion Model",
+        "3D Gaussian Splatting",
+        "Generation"
+      ],
+      "abstract": "The rapid progress of large, pretrained models for both visual content generation and 3D reconstruction opens up new possibilities for text-to-3D generation. Intuitively, one could obtain a formidable 3D scene generator if one were able to combine the power of a modern latent text-to-video model as \"generator\" with the geometric abilities of a recent (feedforward) 3D reconstruction system as \"decoder\". We introduce **VIST3A**, a general framework that does just that, addressing two main challenges. First, the two components must be joined in a way that preserves the rich knowledge encoded in their weights. We revisit *model stitching*, i.e., we identify the layer in the 3D decoder that best matches the latent representation produced by the text-to-video generator and stitch the two parts together. That operation requires only a small dataset and no labels. Second, the text-to-video generator must be aligned with the stitched 3D decoder, to ensure that the generated latents are decodable into consistent, perceptually convincing 3D scene geometry. To that end, we adapt *direct reward finetuning*, a popular technique for human preference alignment. We evaluate the proposed VIST3A approach with different video generators and 3D reconstruction models. All tested pairings markedly improve over prior text-to-3D models that output Gaussian splats. Moreover, by choosing a suitable 3D base model, VIST3A also enables high-quality text-to-pointmap generation.",
+      "forum_url": "https://openreview.net/forum?id=kI27Niy4xY",
+      "pdf_url": "https://openreview.net/pdf/9df245a748a3c747c2138de10339a02108b19257.pdf",
+      "venue_label": "ICLR 2026",
+      "avg_rating": 8.0,
+      "review_count": 4,
+      "module": "Alignment & Post-training"
+    },
+    {
+      "title": "Probabilistic Kernel Function for Fast Angle Testing",
+      "authors": [
+        "Kejing Lu",
+        "Chuan Xiao",
+        "Yoshiharu Ishikawa"
+      ],
+      "keywords": [
+        "Randomized algorithm",
+        "Locality Sensitive Hashing",
+        "Directional statistics"
+      ],
+      "abstract": "In this paper, we study the angle testing problem in the context of similarity search in high-dimensional Euclidean spaces and propose two projection-based probabilistic kernel functions, one designed for angle comparison and the other for angle thresholding. Unlike existing approaches that rely on random projection vectors drawn from Gaussian distributions, our approach leverages reference angles and adopts a deterministic structure for the projection vectors. Notably, our kernel functions do not require asymptotic assumptions, such as the number of projection vectors tending to infinity, and can be theoretically and experimentally shown to outperform Gaussian-distribution-based kernel functions. We apply the proposed kernel function to Approximate Nearest Neighbor Search (ANNS) and demonstrate that our approach achieves a 2.5x--3x higher query-per-second (QPS) throughput compared to the widely-used graph-based search algorithm HNSW. Our code and data are available at https://github.com/KejingLu-810/KS.",
+      "forum_url": "https://openreview.net/forum?id=nCsF3Bsn2n",
+      "pdf_url": "https://openreview.net/pdf/6b231f1b0bb470c3baca147370ef04601280148e.pdf",
+      "venue_label": "ICLR 2026",
+      "avg_rating": 8.0,
+      "review_count": 4,
+      "module": "Reasoning & CoT"
+    },
+    {
+      "title": "Pay Attention to CTC: Fast and Robust Pseudo-Labelling for Unified Speech Recognition",
+      "authors": [
+        "Alexandros Haliassos",
+        "Rodrigo Mira",
+        "Stavros Petridis"
+      ],
+      "keywords": [
+        "Speech Recognition",
+        "Audiovisual Learning",
+        "Lipreading",
+        "Semi-Supervised Learning",
+        "Pseudo-Labeling"
+      ],
+      "abstract": "Unified Speech Recognition (USR) has emerged as a semi-supervised framework for training a single model for audio, visual, and audiovisual speech recognition, achieving state-of-the-art results on in-distribution benchmarks. However, its reliance on autoregressive pseudo-labelling makes training expensive, while its decoupled supervision of CTC and attention branches increases susceptibility to self-reinforcing errors, particularly under distribution shifts involving longer sequences, noise, or unseen domains. We propose CTC-driven teacher forcing, where greedily decoded CTC pseudo-labels are fed into the decoder to generate attention targets in a single forward pass. Although these can be globally incoherent, in the pseudo-labelling setting they enable efficient and effective knowledge transfer. Because CTC and CTC-driven attention pseudo-labels have the same length, the decoder can predict both simultaneously, benefiting from the robustness of CTC and the expressiveness of attention without costly beam search. We further propose mixed sampling to mitigate the exposure bias of the decoder relying solely on CTC inputs. The resulting method, USR 2.0, halves training time, improves robustness to out-of-distribution inputs, and achieves state-of-the-art results on LRS3, LRS2, and WildVSR, surpassing USR and modality-specific self-supervised baselines.",
+      "forum_url": "https://openreview.net/forum?id=sSbEEHNEsL",
+      "pdf_url": "https://openreview.net/pdf/344bb4e28b7e5c389d362d880d16e8dcf7d49bf7.pdf",
+      "venue_label": "ICLR 2026",
+      "avg_rating": 8.0,
+      "review_count": 4,
+      "module": "Multimodal Models"
+    },
+    {
+      "title": "La-Proteina: Atomistic Protein Generation via Partially Latent Flow Matching",
+      "authors": [
+        "Tomas Geffner",
+        "Kieran Didi",
+        "Zhonglin Cao",
+        "Danny Reidenbach",
+        "Zuobai Zhang",
+        "Christian Dallago",
+        "Emine Kucukbenli",
+        "Karsten Kreis",
+        "Arash Vahdat"
+      ],
+      "keywords": [
+        "Atomistic protein design",
+        "flow matching",
+        "latent diffusion",
+        "motif scaffolding"
+      ],
+      "abstract": "Recently, many generative models for de novo protein structure design have emerged. Yet, only few tackle the difficult task of directly generating fully atomistic structures jointly with the underlying amino acid sequence. This is challenging, for instance, because the model must reason over side chains that change in length during generation. We introduce La-Proteina for atomistic protein design based on a novel partially latent protein representation: coarse backbone structure is modeled explicitly, while sequence and atomistic details are captured via per-residue latent variables of fixed dimensionality, thereby effectively side-stepping challenges of explicit side-chain representations. Flow matching in this partially latent space then models the joint distribution over sequences and full-atom structures. La-Proteina achieves state-of-the-art performance on multiple generation benchmarks, including all-atom co-designability, diversity, and structural validity, as confirmed through detailed structural analyses and evaluations. Notably, La-Proteina also surpasses previous models in atomistic motif scaffolding performance, unlocking critical atomistic structure-conditioned protein design tasks. Moreover, La-Proteina is able to generate co-designable proteins of up to 800 residues, a regime where most baselines collapse and fail to produce valid samples, demonstrating La-Proteina's scalability and robustness.",
+      "forum_url": "https://openreview.net/forum?id=RDerF20JYT",
+      "pdf_url": "https://openreview.net/pdf/440d2ff507ee52dc0b3fc995ee82c16895d89458.pdf",
+      "venue_label": "ICLR 2026",
+      "avg_rating": 8.0,
+      "review_count": 4,
+      "module": "Evaluation & Benchmarks"
+    },
+    {
+      "title": "LLMs Get Lost In Multi-Turn Conversation",
+      "authors": [
+        "Philippe Laban",
+        "Hiroaki Hayashi",
+        "Yingbo Zhou",
+        "Jennifer Neville"
+      ],
+      "keywords": [
+        "multi-turn",
+        "underspecification",
+        "llm simulation"
+      ],
+      "abstract": "Large Language Models (LLMs) are conversational interfaces. As such, LLMs have the potential to assist their users not only when they can fully specify the task at hand, but also to help them define, explore, and refine what they need through multi-turn conversational exchange. Although analysis of LLM conversation logs has confirmed that underspecification occurs frequently in user instructions, LLM evaluation has predominantly focused on the single-turn, fully-specified instruction setting. In this work, we perform large-scale simulation experiments to compare LLM performance in single- and multi-turn settings. Our experiments confirm that all the top open- and closed-weight LLMs we test exhibit significantly lower performance in multi-turn conversations than single-turn, with an average drop of 39% across six generation tasks. Analysis of 200,000+ simulated conversations decomposes the performance degradation into two components: a minor loss in aptitude and a significant increase in unreliability. We find that LLMs often make assumptions in early turns and prematurely attempt to generate final solutions, on which they overly rely. In simpler terms, we discover that when LLMs take a wrong turn in a conversation, they get lost and do not recover.",
+      "forum_url": "https://openreview.net/forum?id=VKGTGGcwl6",
+      "pdf_url": "https://openreview.net/pdf/7161cfb10c26ee4c0318bd8d0c4fcb18faf47dda.pdf",
+      "venue_label": "ICLR 2026",
+      "avg_rating": 8.0,
+      "review_count": 4,
+      "module": "RAG & Knowledge Editing"
+    },
+    {
+      "title": "Does Reinforcement Learning Really Incentivize Reasoning Capacity in LLMs Beyond the Base Model?",
+      "authors": [
+        "Yang Yue",
+        "Zhiqi Chen",
+        "Rui Lu",
+        "Andrew Zhao",
+        "Zhaokai Wang",
+        "Yang Yue",
+        "Shiji Song",
+        "Gao Huang"
+      ],
+      "keywords": [
+        "reinforcement learning with verifiable reward",
+        "LLM reasoning"
+      ],
+      "abstract": "Reinforcement Learning with Verifiable Rewards (RLVR) has recently demonstrated notable success in enhancing the reasoning performance of large language models (LLMs), particularly in mathematics and programming tasks. \nIt is widely believed that, similar to how traditional RL helps agents to explore and learn new strategies, RLVR enables LLMs to continuously self-improve, thus acquiring novel reasoning abilities that exceed the capacity of the corresponding base models. \nIn this study, we take a critical look at \\textit{the current state of RLVR} by systematically probing the reasoning capability boundaries of RLVR-trained LLMs across diverse model families, RL algorithms, and math/coding/visual reasoning benchmarks, using pass@\\textit{k} at large \\textit{k} values as the evaluation metric.\nWhile RLVR improves sampling efficiency towards the correct path, we surprisingly find that current training does \\emph{not} elicit fundamentally new reasoning patterns.\nWe observe that while RLVR-trained models outperform their base models at smaller values of $k$ (\\eg, $k$=1), base models achieve higher pass@$k$ score when $k$ is large.\nMoreover, we observe that the reasoning capability boundary of LLMs often narrows as RLVR training progresses.\nFurther coverage and perplexity analysis shows that the reasoning paths generated by RLVR models are already included in the base models' sampling distribution, suggesting that their reasoning abilities originate from and are \\textit{bounded} by the base model. \nFrom this perspective, treating the base model as an upper bound, our quantitative analysis shows that six popular RLVR algorithms perform similarly and remain far from optimal in fully leveraging the potential of the base model.\nIn contrast, we find that distillation can introduce new reasoning patterns from the teacher and genuinely expand the model’s reasoning capabilities.\nTaken together, our findings suggest that current RLVR methods have not fully realized the potential of RL to elicit genuinely novel reasoning abilities in LLMs. This underscores the need for improved RL paradigms—such as continual scaling and multi-turn agent-environment interaction—to unlock this potential.",
+      "forum_url": "https://openreview.net/forum?id=4OsgYD7em5",
+      "pdf_url": "https://openreview.net/pdf/c3957c2dc397dd6f7bf1e3da21cebaeca53844af.pdf",
+      "venue_label": "NeurIPS 2025",
+      "avg_rating": 6.0,
+      "review_count": 4,
+      "module": "Agents & Tool Use"
+    },
+    {
+      "title": "Learning Linear Attention in Polynomial Time",
+      "authors": [
+        "Morris Yau",
+        "Ekin Akyürek",
+        "Jiayuan Mao",
+        "Joshua B. Tenenbaum",
+        "Stefanie Jegelka",
+        "Jacob Andreas"
+      ],
+      "keywords": [
+        "Transformers",
+        "Learning Theory",
+        "PAC learning"
+      ],
+      "abstract": "Previous research has explored the expressivity of Transformer models in simulating Boolean circuits or Turing machines. However, the efficient learnability of Transformers from data has remained an open question.  Our study addresses this gap by providing the first polynomial-time learnability results (specifically strong, agnostic PAC learning) for single-layer Transformers with linear attention.  We show that learning the optimal multi head linear attention can be recast as finding the optimal kernel predictor in a suitably defined RKHS.  Moving to generalization, we construct an algorithm that, given a dataset, checks in polynomial time whether the set of best fit multi head linear attention networks on this data all perform an identical computation--a powerful notion for out of distribution generalization.  We empirically validate our theoretical findings on several canonical tasks: learning random linear attention networks, key--value associations, and learning to execute finite automata. Our findings bridge a critical gap between theoretical expressivity and learnability of Transformer models.",
+      "forum_url": "https://openreview.net/forum?id=QN0E0KX2LM",
+      "pdf_url": "https://openreview.net/pdf/664b997e23d5c83139996347fba8ac4856a7fc05.pdf",
+      "venue_label": "NeurIPS 2025",
+      "avg_rating": 5.666666666666667,
+      "review_count": 3,
+      "module": "Reasoning & CoT"
+    },
+    {
+      "title": "PerceptionLM: Open-Access Data and Models for Detailed Visual Understanding",
+      "authors": [
+        "Jang Hyun Cho",
+        "Andrea Madotto",
+        "Effrosyni Mavroudi",
+        "Triantafyllos Afouras",
+        "Tushar Nagarajan",
+        "Muhammad Maaz",
+        "Yale Song",
+        "Tengyu Ma",
+        "Shuming Hu",
+        "Suyog Jain",
+        "Miguel Martin",
+        "Huiyu Wang",
+        "Hanoona Abdul Rasheed",
+        "Peize Sun",
+        "Po-Yao Huang",
+        "Daniel Bolya",
+        "Nikhila Ravi",
+        "Shashank Jain",
+        "Tammy Stark",
+        "Seungwhan Moon",
+        "Babak Damavandi",
+        "Vivian Lee",
+        "Andrew Westbury",
+        "Salman Khan",
+        "Philipp Kraehenbuehl",
+        "Piotr Dollar",
+        "Lorenzo Torresani",
+        "Kristen Grauman",
+        "Christoph Feichtenhofer"
+      ],
+      "keywords": [
+        "llm",
+        "mllm",
+        "vlm",
+        "vision and language",
+        "perception"
+      ],
+      "abstract": "Vision-language models are integral to computer vision research, yet many high-performing models remain closed-source, obscuring their data, design and training recipe. The research community has responded by using distillation from black-box models to label training data, achieving strong benchmark results, at the cost of measurable scientific progress. However, without knowing the details of the teacher model and its data sources, scientific progress remains difficult to measure. In this paper, we study building a Perception Language Model (PLM) in a fully open and reproducible framework for transparent research in image and video understanding.  We analyze standard training pipelines without distillation from proprietary models and explore large-scale synthetic data to identify critical data gaps, particularly in detailed video understanding. To bridge these gaps, we release 2.8M human-labeled instances of fine-grained video question-answer pairs and spatio-temporally grounded video captions. Additionally, we introduce PLM–VideoBench, a suite for evaluating challenging video understanding tasks focusing on the ability to reason about ''what'', ''where'', ''when'', and ''how'' of a video. We make our work fully reproducible by providing data, training recipes, code & models.",
+      "forum_url": "https://openreview.net/forum?id=5NkfjxMpWe",
+      "pdf_url": "https://openreview.net/pdf/4bf7839de7763e96318a3ecc89aea5822812624b.pdf",
+      "venue_label": "NeurIPS 2025",
+      "avg_rating": 5.5,
+      "review_count": 4,
+      "module": "Multimodal Models"
+    },
+    {
+      "title": "Optimal Mistake Bounds for Transductive Online Learning",
+      "authors": [
+        "Zachary Chase",
+        "Steve Hanneke",
+        "Shay Moran",
+        "Jonathan Shafer"
+      ],
+      "keywords": [
+        "Online Learning"
+      ],
+      "abstract": "We resolve a 30-year-old open problem concerning the power of unlabeled data in online learning by tightly quantifying the gap between transductive and standard online learning. We prove that for every concept class $\\mathcal{H}$ with Littlestone dimension $d$, the transductive mistake bound is at least $\\Omega(\\sqrt{d})$. This establishes an exponential improvement over previous lower bounds of $\\Omega(\\log \\log d)$, $\\Omega(\\sqrt{\\log d})$, and $\\Omega(\\log d)$, respectively due to Ben-David, Kushilevitz, and Mansour (1995, 1997) and Hanneke, Moran, and Shafer (2023). We also show that our bound is tight: for every $d$, there exists a class of Littlestone dimension $d$ with transductive mistake bound $O(\\sqrt{d})$. Our upper bound also improves the previous best known upper bound of $(2/3) \\cdot d$ from Ben-David et al. (1997). These results demonstrate a quadratic gap between transductive and standard online learning, thereby highlighting the benefit of advanced access to the unlabeled instance sequence. This stands in stark contrast to the PAC setting, where transductive and standard learning exhibit similar sample complexities.",
+      "forum_url": "https://openreview.net/forum?id=EoebmBe9fG",
+      "pdf_url": "https://openreview.net/pdf/2a0ec285d5d3aa6db1f012b5a8b57723ad861064.pdf",
+      "venue_label": "NeurIPS 2025",
+      "avg_rating": 5.5,
+      "review_count": 4,
+      "module": "Reasoning & CoT"
+    },
+    {
+      "title": "OmniSync: Towards Universal Lip Synchronization via Diffusion Transformers",
+      "authors": [
+        "Ziqiao Peng",
+        "Jiwen Liu",
+        "Haoxian Zhang",
+        "Xiaoqiang Liu",
+        "Songlin Tang",
+        "Pengfei Wan",
+        "Di ZHANG",
+        "Hongyan Liu",
+        "Jun He"
+      ],
+      "keywords": [
+        "Lip Synchronization",
+        "Diffusion Transformers",
+        "Talking Head Generation"
+      ],
+      "abstract": "Lip synchronization is the task of aligning a speaker’s lip movements in video with corresponding speech audio, and it is essential for creating realistic, expressive video content. \nHowever, existing methods often rely on reference frames and masked-frame inpainting, which limit their robustness to identity consistency, pose variations, facial occlusions, and stylized content. In addition, since audio signals provide weaker conditioning than visual cues, lip shape leakage from the original video will affect lip sync quality.\nIn this paper, we present OmniSync, a universal lip synchronization framework for diverse visual scenarios. Our approach introduces a mask-free training paradigm using Diffusion Transformer models for direct frame editing without explicit masks, enabling unlimited-duration inference while maintaining natural facial dynamics and preserving character identity.\nDuring inference, we propose a flow-matching-based progressive noise initialization to ensure pose and identity consistency, while allowing precise mouth-region editing. To address the weak conditioning signal of audio, we develop a Dynamic Spatiotemporal Classifier-Free Guidance (DS-CFG) mechanism that adaptively adjusts guidance strength over time and space.\nWe also establish the AIGC-LipSync Benchmark, the first evaluation suite for lip synchronization in diverse AI-generated videos. Extensive experiments demonstrate that OmniSync significantly outperforms prior methods in both visual quality and lip sync accuracy, achieving superior results in both real-world and AI-generated videos.",
+      "forum_url": "https://openreview.net/forum?id=9XCyUFsm1H",
+      "pdf_url": "https://openreview.net/pdf/6d796334e96d615d8ab9a75eaeed6e5c7893a638.pdf",
+      "venue_label": "NeurIPS 2025",
+      "avg_rating": 5.5,
+      "review_count": 4,
+      "module": "Multimodal Models"
+    },
+    {
+      "title": "Mesh-RFT: Enhancing Mesh Generation via Fine-grained Reinforcement Fine-Tuning",
+      "authors": [
+        "Jian Liu",
+        "Jing Xu",
+        "Song Guo",
+        "Jing Li",
+        "Guojingfeng",
+        "Jiaao Yu",
+        "Haohan Weng",
+        "Biwen Lei",
+        "Xianghui Yang",
+        "Zhuo Chen",
+        "Fangqi Zhu",
+        "Tao Han",
+        "Chunchao Guo"
+      ],
+      "keywords": [
+        "Autoregressive Mesh Generation",
+        "Reinforcement Learning",
+        "Topology Optimization"
+      ],
+      "abstract": "Existing pretrained models for 3D mesh generation often suffer from data biases and produce low-quality results, while global reinforcement learning (RL) methods rely on object-level rewards that struggle to capture local structure details. To address these challenges, we present $\\textbf{Mesh-RFT}$, a novel fine-grained reinforcement fine-tuning framework that employs Masked Direct Preference Optimization (M-DPO) to enable localized refinement via quality-aware face masking. To facilitate efficient quality evaluation, we introduce an objective topology-aware scoring system to evaluate geometric integrity and topological regularity at both object and face levels through two metrics: Boundary Edge Ratio (BER) and Topology Score (TS). By integrating these metrics into a fine-grained RL strategy, Mesh-RFT becomes the first method to optimize mesh quality at the granularity of individual faces, resolving localized errors while preserving global coherence. Experiment results show that our M-DPO approach reduces Hausdorff Distance (HD) by 24.6\\% and improves Topology Score (TS) by 3.8\\% over pre-trained models, while outperforming global DPO methods with a 17.4\\% HD reduction and 4.9\\% TS gain. These results demonstrate Mesh-RFT’s ability to improve geometric integrity and topological regularity, achieving new state-of-the-art performance in production-ready mesh generation.",
+      "forum_url": "https://openreview.net/forum?id=te2RsWcyQp",
+      "pdf_url": "https://openreview.net/pdf/fbd8d6fd2f8ff032207026054c51e9b9a7bb0100.pdf",
+      "venue_label": "NeurIPS 2025",
+      "avg_rating": 5.5,
+      "review_count": 4,
+      "module": "Alignment & Post-training"
+    },
+    {
+      "title": "KORGym: A Dynamic Game Platform for LLM Reasoning Evaluation",
+      "authors": [
+        "Jiajun Shi",
+        "Jian Yang",
+        "Jiaheng Liu",
+        "Xingyuan Bu",
+        "Jiangjie Chen",
+        "Junting Zhou",
+        "Kaijing Ma",
+        "Zhoufutu Wen",
+        "Bingli Wang",
+        "Yancheng He",
+        "Liang Song",
+        "Hualei Zhu",
+        "Shilong Li",
+        "Xingjian Wang",
+        "Wei Zhang",
+        "Ruibin Yuan",
+        "Yifan Yao",
+        "Wenjun Yang",
+        "Yunli Wang",
+        "Siyuan Fang",
+        "Siyu Yuan",
+        "Qianyu He",
+        "Xiangru Tang",
+        "Yingshui Tan",
+        "Wangchunshu Zhou",
+        "Zhaoxiang Zhang",
+        "Zhoujun Li",
+        "Wenhao Huang",
+        "Ge Zhang"
+      ],
+      "keywords": [
+        "LLM; Evaluation; RL; Game"
+      ],
+      "abstract": "Recent advancements in large language models (LLMs) underscore the need for more comprehensive evaluation methods to accurately assess their reasoning capabilities. Existing benchmarks are often domain-specific and thus cannot fully capture an LLM’s general reasoning potential. To address this limitation, we introduce the **Knowledge Orthogonal Reasoning Gymnasium (KORGym)**, a dynamic evaluation platform inspired by KOR-Bench and Gymnasium. KORGym offers over fifty games in either textual or visual formats and supports interactive, multi-turn assessments with reinforcement learning scenarios. Using KORGym, we conduct extensive experiments on 19 LLMs and 8 VLMs, revealing consistent reasoning patterns within model families and demonstrating the superior performance of closed-source models. Further analysis examines the effects of modality, reasoning strategies, reinforcement learning techniques, and response length on model performance. We expect KORGym to become a valuable resource for advancing LLM reasoning research and developing evaluation methodologies suited to complex, interactive environments.",
+      "forum_url": "https://openreview.net/forum?id=uAeqQePu4c",
+      "pdf_url": "https://openreview.net/pdf/f825a59867c5bb6282e851bc259033c0a30a35f6.pdf",
+      "venue_label": "NeurIPS 2025",
+      "avg_rating": 5.5,
+      "review_count": 4,
+      "module": "Alignment & Post-training"
+    },
+    {
+      "title": "FlexOLMo: Open Language Models for Flexible Data Use",
+      "authors": [
+        "Weijia Shi",
+        "Akshita Bhagia",
+        "Kevin Farhat",
+        "Niklas Muennighoff",
+        "Jacob Morrison",
+        "Evan Pete Walsh",
+        "Dustin Schwenk",
+        "Shayne Longpre",
+        "Jake Poznanski",
+        "Allyson Ettinger",
+        "Daogao Liu",
+        "Margaret Li",
+        "Mike Lewis",
+        "Wen-tau Yih",
+        "Dirk Groeneveld",
+        "Luca Soldaini",
+        "Kyle Lo",
+        "Noah A. Smith",
+        "Luke Zettlemoyer",
+        "Pang Wei Koh",
+        "Hannaneh Hajishirzi",
+        "Ali Farhadi",
+        "Sewon Min"
+      ],
+      "keywords": [
+        "Language Model"
+      ],
+      "abstract": "We introduce FlexOLMo, a new class of language models (LMs) that supports (1) distributed training without data sharing, where different model parameters are independently trained on private datasets, and (2) data-flexible inference, where these parameters along with their associated data can be easily included or excluded from model inferences with no further training. FlexOLMo employs a mixture-of-experts (MoE) architecture where each expert is trained independently on private datasets and later integrated through a new nonparametric routing without any joint training across datasets. FlexOLMo is trained on FLEXMIX, a corpus we curate comprising seven restricted sets, either real or realistic approximations, alongside publicly available datasets. We evaluate models with up to 37 billion parameters (20 billion active) on 31 diverse downstream tasks. We show that a general expert trained on public data can be effectively combined with independently trained experts from other data owners significantly benefiting from these restricted sets (an average 41% relative improvement) while allowing flexible opt-out at inference time (e.g., for users without appropriate licenses or permissions). Our approach also outperforms prior model merging methods by 10.1% on average and surpasses the standard MoE trained without data restrictions using the same training FLOPs. Altogether, FlexOLMo enables training on restricted data while keeping data local and supports fine-grained control of data access at inference.",
+      "forum_url": "https://openreview.net/forum?id=1rUj9ZN6Bz",
+      "pdf_url": "https://openreview.net/pdf/8f3cdc023c3667a94723c6d48cd088c4c9c3d805.pdf",
+      "venue_label": "NeurIPS 2025",
+      "avg_rating": 5.5,
+      "review_count": 4,
+      "module": "Alignment & Post-training"
+    },
+    {
+      "title": "An analytic theory of creativity in convolutional diffusion models",
+      "authors": [
+        "Mason Kamb",
+        "Surya Ganguli"
+      ],
+      "keywords": [
+        "Diffusion models",
+        "Creativity",
+        "Inductive Biases",
+        "Theory",
+        "Interpretability"
+      ],
+      "abstract": "We obtain an analytic, interpretable and predictive theory of creativity in convolutional diffusion models. Indeed, score-matching diffusion models can generate highly original images that lie far from their training data.  However, optimal score-matching theory suggests that these models should only be able to produce memorized training examples. To reconcile this theory-experiment gap, we identify two simple inductive biases, locality and equivariance, that: (1) induce a form of combinatorial creativity by preventing optimal score-matching; (2) result in fully analytic, completely mechanistically interpretable, local score (LS) and equivariant local score (ELS) machines that, (3) after calibrating a single time-dependent hyperparameter can quantitatively predict the outputs of trained convolution only diffusion models (like ResNets and UNets) with high accuracy (median $r^2$ of $0.95, 0.94, 0.94, 0.96$ for our top model on CIFAR10, FashionMNIST, MNIST, and CelebA). Our model reveals a {\\it locally consistent patch mosaic} mechanism of creativity, in which diffusion models create exponentially many novel images by mixing and matching different local training set patches at different scales and image locations. Our theory also partially predicts the outputs of pre-trained self-attention enabled UNets (median $r^2 \\sim 0.77$ on CIFAR10), revealing an intriguing role for attention in carving out semantic coherence from local patch mosaics.",
+      "forum_url": "https://openreview.net/forum?id=ilpL2qACla",
+      "pdf_url": "https://openreview.net/pdf/e41d24f2c8bc8af3b4c09a956848b0451c86436a.pdf",
+      "venue_label": "ICML 2025",
+      "avg_rating": 4.75,
+      "review_count": 4,
+      "module": "Efficiency & Systems"
+    },
+    {
+      "title": "Strategy Coopetition Explains the Emergence and Transience of In-Context Learning",
+      "authors": [
+        "Aaditya K Singh",
+        "Ted Moskovitz",
+        "Sara Dragutinović",
+        "Felix Hill",
+        "Stephanie C.Y. Chan",
+        "Andrew M Saxe"
+      ],
+      "keywords": [
+        "Mechanistic interpretability",
+        "transformers",
+        "in-context learning",
+        "transience",
+        "dynamics",
+        "Machine Learning",
+        "strategy",
+        "cooperation",
+        "competition",
+        "coopetition"
+      ],
+      "abstract": "In-context learning (ICL) is a powerful ability that emerges in transformer models, enabling them to learn from context without weight updates. Recent work has established emergent ICL as a transient phenomenon that can sometimes disappear after long training times. In this work, we sought a mechanistic understanding of these transient dynamics. Firstly, we find that—after the disappearance of ICL—the asymptotic strategy is a remarkable hybrid between in-weights and in-context learning, which we term “context-constrained in-weights learning” (CIWL). CIWL is in competition with ICL, and eventually replaces it as the dominant strategy of the model (thus leading to ICL transience). However, we also find that the two competing strategies actually share sub-circuits, which gives rise to cooperative dynamics as well. For example, in our setup, ICL is unable to emerge quickly on its own, and can only be enabled through the simultaneous slow development of asymptotic CIWL. CIWL thus both cooperates and competes with ICL, a phenomenon we term “strategy coopetition”. We\npropose a minimal mathematical model that reproduces these key dynamics and interactions. Informed by this model, we were able to identify a setup where ICL is truly emergent and persistent.",
+      "forum_url": "https://openreview.net/forum?id=esBoQFmD7v",
+      "pdf_url": "https://openreview.net/pdf/71c48bacf4911e581381345e65716e50353dbb84.pdf",
+      "venue_label": "ICML 2025",
+      "avg_rating": 4.666666666666667,
+      "review_count": 3,
+      "module": "Reasoning & CoT"
+    },
+    {
+      "title": "Model Immunization from a Condition Number Perspective",
+      "authors": [
+        "Amber Yijia Zheng",
+        "Site Bai",
+        "Brian Bullins",
+        "Raymond A. Yeh"
+      ],
+      "keywords": [
+        "Model Immunization",
+        "Optimization",
+        "Condition Number"
+      ],
+      "abstract": "Model immunization aims to pre-train models that are difficult to fine-tune on harmful tasks while retaining their utility on other non-harmful tasks. Though prior work has shown empirical evidence for immunizing text-to-image models, the key understanding of when immunization is possible and a precise definition of an immunized model remain unclear. In this work, we propose a framework, based on the condition number of a Hessian matrix, to analyze model immunization for linear models. Building on this framework, we design an algorithm with regularization terms to control the resulting condition numbers after pre-training. Empirical results on linear models and non-linear deep-nets demonstrate the effectiveness of the proposed algorithm on model immunization. The code is available at https://github.com/amberyzheng/model-immunization-cond-num.",
+      "forum_url": "https://openreview.net/forum?id=uitj69FqD5",
+      "pdf_url": "https://openreview.net/pdf/64d67e7940c2c59eeee4c8980c633fe9a04008df.pdf",
+      "venue_label": "ICML 2025",
+      "avg_rating": 4.666666666666667,
+      "review_count": 3,
+      "module": "World Models & Robotics"
+    },
+    {
+      "title": "Learning with Expected Signatures: Theory and Applications",
+      "authors": [
+        "Lorenzo Lucchese",
+        "Mikko S. Pakkanen",
+        "Almut E. D. Veraart"
+      ],
+      "keywords": [
+        "Probabilistic Machine Learning",
+        "Signature",
+        "Expected Signature",
+        "Time Series",
+        "Rough Paths"
+      ],
+      "abstract": "The expected signature maps a collection of data streams to a lower dimensional representation, with a remarkable property: the resulting feature tensor can fully characterize the data generating distribution. This \"model-free\"' embedding has been successfully leveraged to build multiple domain-agnostic machine learning (ML) algorithms for time series and sequential data. The convergence results proved in this paper bridge the gap between the expected signature's empirical discrete-time estimator and its theoretical continuous-time value, allowing for a more complete probabilistic interpretation of expected signature-based ML methods. Moreover, when the data generating process is a martingale, we suggest a simple modification of the expected signature estimator with significantly lower mean squared error and empirically demonstrate how it can be effectively applied to improve predictive performance.",
+      "forum_url": "https://openreview.net/forum?id=yDTwamN4LQ",
+      "pdf_url": "https://openreview.net/pdf/9e2f232b993758e1f9770aec7d656cb7bad9bf89.pdf",
+      "venue_label": "ICML 2025",
+      "avg_rating": 4.666666666666667,
+      "review_count": 3,
+      "module": "RAG & Knowledge Editing"
+    },
+    {
+      "title": "Flowing Datasets with Wasserstein over Wasserstein Gradient Flows",
+      "authors": [
+        "Clément Bonet",
+        "Christophe Vauthier",
+        "Anna Korba"
+      ],
+      "keywords": [
+        "Wasserstein gradient flows",
+        "optimal transport",
+        "datasets"
+      ],
+      "abstract": "Many applications in machine learning involve data represented as probability distributions. The emergence of such data requires radically novel techniques to design tractable gradient flows on probability distributions over this type of (infinite-dimensional) objects. For instance, being able to flow labeled datasets is a core task for applications ranging from domain adaptation to transfer learning or dataset distillation. In this setting, we propose to represent each class by the associated conditional distribution of features, and to model the dataset as a mixture distribution supported on these classes (which are themselves probability distributions), meaning that labeled datasets can be seen as probability distributions over probability distributions. We endow this space with a metric structure from optimal transport, namely the Wasserstein over Wasserstein (WoW) distance, derive a differential structure on this space, and define WoW gradient flows. The latter enables to design dynamics over this space that decrease a given objective functional. We apply our framework to transfer learning and dataset distillation tasks, leveraging our gradient flow construction as well as novel tractable functionals that take the form of Maximum Mean Discrepancies with Sliced-Wasserstein based kernels between probability distributions.",
+      "forum_url": "https://openreview.net/forum?id=I1OHPb4zWo",
+      "pdf_url": "https://openreview.net/pdf/7d331655f31b63f17e2521fac4507e7a849aa8cf.pdf",
+      "venue_label": "ICML 2025",
+      "avg_rating": 4.666666666666667,
+      "review_count": 3,
+      "module": "Alignment & Post-training"
+    },
+    {
+      "title": "Towards Universal Offline Black-Box Optimization via Learning Language Model Embeddings",
+      "authors": [
+        "Rong-Xi Tan",
+        "Ming Chen",
+        "Ke Xue",
+        "Yao Wang",
+        "Yaoyuan Wang",
+        "Fu Sheng",
+        "Chao Qian"
+      ],
+      "keywords": [
+        "Universal optimization; Offline optimization"
+      ],
+      "abstract": "The pursuit of universal black-box optimization (BBO) algorithms is a longstanding goal. However, unlike domains such as language or vision, where scaling structured data has driven generalization, progress in offline BBO remains hindered by the lack of unified representations for heterogeneous numerical spaces. Thus, existing offline BBO approaches are constrained to single-task and fixed-dimensional settings, failing to achieve cross-domain universal optimization. Recent advances in language models (LMs) offer a promising path forward: their embeddings capture latent relationships in a unifying way, enabling universal optimization across different data types possible. In this paper, we discuss multiple potential approaches, including an end-to-end learning framework in the form of next-token prediction, as well as prioritizing the learning of latent spaces with strong representational capabilities. To validate the effectiveness of these methods, we collect offline BBO tasks and data from open-source academic works for training. Experiments demonstrate the universality and effectiveness of our proposed methods. Our findings suggest that unifying language model priors and learning string embedding space can overcome traditional barriers in universal BBO, paving the way for general-purpose BBO algorithms. The code is provided at https://github.com/lamda-bbo/universal-offline-bbo.",
+      "forum_url": "https://openreview.net/forum?id=NOV32X1Rq3",
+      "pdf_url": "https://openreview.net/pdf/358afd8f757c20cf00a942b9100c3bb4f6d25565.pdf",
+      "venue_label": "ICML 2025",
+      "avg_rating": 4.5,
+      "review_count": 4,
+      "module": "Reasoning & CoT"
+    },
+    {
+      "title": "Multi-agent Architecture Search via Agentic Supernet",
+      "authors": [
+        "Guibin Zhang",
+        "Luyang Niu",
+        "Junfeng Fang",
+        "Kun Wang",
+        "LEI BAI",
+        "Xiang Wang"
+      ],
+      "keywords": [
+        "LLM-agent",
+        "Agentic Workflows",
+        "Multi-agent System"
+      ],
+      "abstract": "Large Language Model (LLM)-empowered multi-agent systems extend the cognitive boundaries of individual agents through disciplined collaboration and interaction, while constructing these systems often requires labor-intensive manual designs. Despite the availability of methods to automate the design of agentic workflows, they typically seek to identify a static, complex, one-size-fits-all system, which, however, fails to dynamically allocate inference resources based on the difficulty and domain of each query. To address this challenge, we shift away from the pursuit of a monolithic agentic system, instead optimizing the \\textbf{agentic supernet}, a probabilistic and continuous distribution of agentic architectures. We introduce \\textbf{MaAS}, an automated framework that samples query-dependent agentic systems from the supernet, delivering high-quality solutions and tailored resource allocation (\\textit{e.g.}, LLM calls, tool calls, token cost). Comprehensive evaluation across six benchmarks demonstrates that MaAS \\textbf{(I)} requires only $6\\\\sim45\\\\%$ of the inference costs of existing handcrafted or automated multi-agent systems, \\textbf{(II)} surpasses them by $0.54\\\\%\\sim11.82\\\\%$, and \\textbf{(III)} enjoys superior cross-dataset and cross-LLM-backbone transferability.",
+      "forum_url": "https://openreview.net/forum?id=imcyVlzpXh",
+      "pdf_url": "https://openreview.net/pdf/46a781e93da44fdacc085588e4eeb8edc5f20439.pdf",
+      "venue_label": "ICML 2025",
+      "avg_rating": 4.5,
+      "review_count": 4,
+      "module": "Agents & Tool Use"
+    },
+    {
+      "title": "Learning Smooth and Expressive Interatomic Potentials for Physical Property Prediction",
+      "authors": [
+        "Xiang Fu",
+        "Brandon M Wood",
+        "Luis Barroso-Luque",
+        "Daniel S. Levine",
+        "Meng Gao",
+        "Misko Dzamba",
+        "C. Lawrence Zitnick"
+      ],
+      "keywords": [
+        "Machine Learning Force Fields",
+        "Machine Learning Potentials",
+        "DFT",
+        "Computational Chemistry",
+        "Molecular Dynamics"
+      ],
+      "abstract": "Machine learning interatomic potentials (MLIPs) have become increasingly effective at approximating quantum mechanical calculations at a fraction of the computational cost. However, lower errors on held out test sets do not always translate to improved results on downstream physical property prediction tasks. In this paper, we propose testing MLIPs on their practical ability to conserve energy during molecular dynamic simulations. If passed, improved correlations are found between test errors and their performance on physical property prediction tasks. We identify choices which may lead to models failing this test, and use these observations to improve upon highly-expressive models. The resulting model, eSEN, provides state-of-the-art results on a range of physical property prediction tasks, including materials stability prediction, thermal conductivity prediction, and phonon calculations.",
+      "forum_url": "https://openreview.net/forum?id=R0PBjxIbgm",
+      "pdf_url": "https://openreview.net/pdf/ad8e0d18dfd105cf804df2cff0c1c116da0d7ebe.pdf",
+      "venue_label": "ICML 2025",
+      "avg_rating": 4.5,
+      "review_count": 4,
+      "module": "AI for Science"
+    }
+  ]
+}

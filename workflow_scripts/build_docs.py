@@ -26,6 +26,12 @@ class ReportItem:
     sort_key: str
 
 
+GROUP_PRIORITY = {
+    "专题题库": -20,
+    "高分论文索引": -20,
+}
+
+
 def derive_title(md_file: str) -> str:
     stem = md_file[:-3] if md_file.endswith(".md") else md_file
     parts = stem.split("_", 2)
@@ -167,6 +173,31 @@ def group_items(items: list[ReportItem], key_func) -> dict[str, list[ReportItem]
     return dict(sorted(grouped.items(), key=lambda pair: pair[0]))
 
 
+def sorted_group_entries(grouped: dict[str, list[ReportItem]]) -> list[tuple[str, list[ReportItem]]]:
+    return sorted(
+        grouped.items(),
+        key=lambda pair: (GROUP_PRIORITY.get(pair[0], 0), pair[0]),
+    )
+
+
+def find_featured_item(
+    items: list[ReportItem],
+    *,
+    kind: str,
+    group: str | None = None,
+    title_contains: str | None = None,
+) -> ReportItem | None:
+    for item in items:
+        if item.kind != kind:
+            continue
+        if group is not None and item.group != group:
+            continue
+        if title_contains is not None and title_contains not in item.title:
+            continue
+        return item
+    return None
+
+
 def write_text(path: str, content: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as f:
@@ -188,6 +219,17 @@ def render_reports_home(items: list[ReportItem]) -> str:
     papers_count = sum(1 for item in items if item.kind == "papers")
     courses_count = sum(1 for item in items if item.kind == "courses")
     insights_count = sum(1 for item in items if item.kind == "insights")
+    featured_interview = find_featured_item(items, kind="interviews", group="专题题库")
+    featured_paper = find_featured_item(items, kind="papers", group="高分论文索引")
+
+    featured_lines = []
+    if featured_interview or featured_paper:
+        featured_lines.extend(["## 精选入口", ""])
+        if featured_interview:
+            featured_lines.append(f"- [大厂 AI 高频题单]({featured_interview.link})")
+        if featured_paper:
+            featured_lines.append(f"- [顶会高分论文总览]({featured_paper.link})")
+        featured_lines.append("")
 
     return f"""
 # 知识库总览
@@ -209,6 +251,8 @@ def render_reports_home(items: list[ReportItem]) -> str:
 | 论文 | {papers_count} |
 | 课程 | {courses_count} |
 | 洞察 | {insights_count} |
+
+{chr(10).join(featured_lines).strip()}
 """
 
 
@@ -220,7 +264,9 @@ def render_interviews_by_tag(items: list[ReportItem]) -> str:
 
 
 def render_interviews_page(items: list[ReportItem]) -> str:
-    by_company = group_items(items, lambda item: item.group)
+    curated_items = [item for item in items if item.group == "专题题库"]
+    regular_items = [item for item in items if item.group != "专题题库"]
+    by_company = group_items(regular_items, lambda item: item.group)
     by_tag = group_items(items, lambda item: item.sub_group)
 
     lines = [
@@ -228,17 +274,32 @@ def render_interviews_page(items: list[ReportItem]) -> str:
         "",
         "这里是面向求职准备的主战场。现在已经可以按公司和知识点双视角浏览，后续再叠加筛选、统计和题单就会很顺。",
         "",
-        "## 按公司浏览",
-        "",
     ]
 
-    for company, company_items in by_company.items():
+    if curated_items:
+        lines.extend(
+            [
+                "## 专题题库精选",
+                "",
+                render_item_list(curated_items),
+                "",
+            ]
+        )
+
+    lines.extend(
+        [
+        "## 按公司浏览",
+        "",
+        ]
+    )
+
+    for company, company_items in sorted_group_entries(by_company):
         lines.append(f"### {company} ({len(company_items)})")
         lines.append(render_item_list(company_items, with_prefix=f"[{company}]"))
         lines.append("")
 
     lines.extend(["## 按知识点浏览", ""])
-    for tag, tag_items in by_tag.items():
+    for tag, tag_items in sorted_group_entries(by_tag):
         lines.append(f"### {tag} ({len(tag_items)})")
         lines.append(render_interviews_by_tag(tag_items))
         lines.append("")
@@ -247,7 +308,9 @@ def render_interviews_page(items: list[ReportItem]) -> str:
 
 
 def render_papers_page(items: list[ReportItem]) -> str:
-    by_field = group_items(items, lambda item: item.group)
+    curated_items = [item for item in items if item.group == "高分论文索引"]
+    regular_items = [item for item in items if item.group != "高分论文索引"]
+    by_field = group_items(regular_items, lambda item: item.group)
     lines = [
         "# 论文板块",
         "",
@@ -255,7 +318,10 @@ def render_papers_page(items: list[ReportItem]) -> str:
         "",
     ]
 
-    for field_name, field_items in by_field.items():
+    if curated_items:
+        lines.extend(["## 顶会高分论文精选", "", render_item_list(curated_items), ""])
+
+    for field_name, field_items in sorted_group_entries(by_field):
         lines.append(f"## {field_name} ({len(field_items)})")
         lines.append(render_item_list(field_items))
         lines.append("")
@@ -351,7 +417,7 @@ def build_sidebar(items: list[ReportItem]) -> list[dict]:
 
     by_company = group_items(interviews, lambda item: item.group)
     interview_items = []
-    for company, company_items in by_company.items():
+    for company, company_items in sorted_group_entries(by_company):
         by_tag = group_items(company_items, lambda item: item.sub_group)
         interview_items.append(
             {
@@ -363,7 +429,7 @@ def build_sidebar(items: list[ReportItem]) -> list[dict]:
                         "collapsed": True,
                         "items": render_sidebar_report_items(tag_items),
                     }
-                    for tag, tag_items in by_tag.items()
+                    for tag, tag_items in sorted_group_entries(by_tag)
                 ],
             }
         )
@@ -376,7 +442,7 @@ def build_sidebar(items: list[ReportItem]) -> list[dict]:
             "collapsed": True,
             "items": render_sidebar_report_items(field_items),
         }
-        for field_name, field_items in by_field.items()
+        for field_name, field_items in sorted_group_entries(by_field)
     ]
     sidebar.append(render_sidebar_section("论文精读", paper_items, collapsed=False))
 
@@ -387,7 +453,7 @@ def build_sidebar(items: list[ReportItem]) -> list[dict]:
             "collapsed": True,
             "items": render_sidebar_report_items(course_items_value),
         }
-        for course_name, course_items_value in by_course.items()
+        for course_name, course_items_value in sorted_group_entries(by_course)
     ]
     sidebar.append(render_sidebar_section("课程笔记", course_items, collapsed=False))
 
@@ -398,7 +464,7 @@ def build_sidebar(items: list[ReportItem]) -> list[dict]:
             "collapsed": True,
             "items": render_sidebar_report_items(topic_items),
         }
-        for topic, topic_items in by_topic.items()
+        for topic, topic_items in sorted_group_entries(by_topic)
     ]
     sidebar.append(render_sidebar_section("行业洞察", insight_items, collapsed=False))
     return sidebar

@@ -14,6 +14,15 @@ interviews_tags:
 - RAG与向量检索
 - Agent与工具调用
 - 模型微调
+- Transformer结构
+- 长上下文
+- 推理优化与部署
+- 训练并行与系统
+- 后训练与对齐
+- 多模态与视觉语言
+- 数据工程与评测
+- 生成模型与扩散
+- 经典算法与编程
 - CUDA与推理加速
 - 强化学习与RLHF
 - 多模态基础
@@ -21,6 +30,11 @@ interviews_tags:
 - 其他
 papers_tags:
 - LLM Architecture
+- Alignment & Post-training
+- Agents & Tool Use
+- Efficiency & Systems
+- Diffusion & Generation
+- World Models & Robotics
 - RLHF & Reward Model
 - Prompt Engineering
 - Parameter-Efficient Fine-Tuning

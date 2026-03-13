@@ -30,7 +30,9 @@
 - `process_paper.py`：论文精读主流程，支持文本 / PDF
 - `process_course.py`：课程笔记精编主流程
 - `collect_openreview.py`：按 accepted + review score 抓 OpenReview 论文
+- `collect_top_conference_papers.py`：自动汇总 ICLR / NeurIPS / ICML 高分 accepted 论文并按模块生成页面
 - `scraper_arxiv.py`：抓 ArXiv 最新论文
+- `generate_interview_bank.py`：扫描仓库已有面经并蒸馏生成“大厂 AI 算法高频题单”
 - `insight.py`：从最近面经里生成风向标周报
 - `build_docs.py`：把 `reports/` 生成到 VitePress
 - `receiver_server.py`：Webhook 收图收文入口
@@ -63,6 +65,14 @@ npm run docs:build
 - `archive/<公司>/<标签>/`
 - `reports/<公司>/<标签>/`
 
+如果你想直接生成“可刷题”的高频题单，而不是继续堆单篇面经，可以额外运行：
+
+```bash
+python workflow_scripts/generate_interview_bank.py
+python workflow_scripts/build_docs.py
+npm run docs:build
+```
+
 ### 2. 顶会论文采集
 
 推荐做法是把“采集”和“精读”分成两步：
@@ -86,6 +96,14 @@ npm run docs:build
 ```
 
 这会把命中的论文先写进 `raw_data_papers/`，并在 `archive/papers/_manifests/` 保留 manifest。
+
+如果你想跳过逐篇精读，先直接得到“顶会高分论文模块汇总”，可以运行：
+
+```bash
+python workflow_scripts/collect_top_conference_papers.py
+python workflow_scripts/build_docs.py
+npm run docs:build
+```
 
 ## 安装
 
