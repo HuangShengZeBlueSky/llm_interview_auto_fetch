@@ -4,20 +4,30 @@ import json
 import os
 import re
 import subprocess
-from collections import defaultdict
-from dataclasses import dataclass
+from collections import Counter, defaultdict
+from dataclasses import dataclass, field
 from datetime import datetime
 from difflib import SequenceMatcher
+from hashlib import md5
+from html import unescape
 from pathlib import Path
-from typing import Iterable
 
+import requests
 import yaml
 from dotenv import load_dotenv
 from openai import OpenAI
 
 
-load_dotenv()
+load_dotenv(".env")
 
+
+REQUEST_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/134.0.0.0 Safari/537.36"
+    )
+}
 
 REPO_SPECS = [
     (
@@ -30,7 +40,6 @@ REPO_SPECS = [
     ),
 ]
 
-
 DEEPLEARNING_MODULES = [
     ("DeepLearing-Interview-Awesome-2024_LLMs专题", "LLMs/Reference.md"),
     ("DeepLearing-Interview-Awesome-2024_Agent专题", "LLMs/Agent.md"),
@@ -41,6 +50,12 @@ DEEPLEARNING_MODULES = [
     ("DeepLearing-Interview-Awesome-2024_开源项目专题", "AwesomeProjects/Reference.md"),
 ]
 
+TOP_HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*$", re.MULTILINE)
+LOCAL_REPORT_QUESTION_RE = re.compile(r"^#\s*题目\d+[：:]\s*(.+?)\s*$", re.MULTILINE)
+MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+RAW_HTML_TAG_RE = re.compile(r"</?[A-Za-z][^>\n]*>")
+LOCAL_IMAGE_RE = re.compile(r"!\[([^\]]*)\]\((?!https?://)([^)]+)\)")
+QUESTION_LINE_RE = re.compile(r"^\s*(?:[-*]|(?:\d+|[一二三四五六七八九十]+)[\.、:：\)]?)\s*(.+?)\s*$")
 
 QUESTION_LIKE_KEYWORDS = (
     "什么",
@@ -64,15 +79,45 @@ QUESTION_LIKE_KEYWORDS = (
     "公式",
     "训练",
     "推理",
+    "微调",
+    "并行",
+    "部署",
+    "损失",
+    "注意力",
+    "蒸馏",
+    "幻觉",
+    "量化",
+    "RAG",
+    "Agent",
+    "Tokenizer",
+    "MoE",
+    "RLHF",
 )
 
+TAG_KEYWORDS = [
+    ("RAG与向量检索", ("rag", "检索", "向量库", "embedding", "召回", "rerank")),
+    ("Agent与工具调用", ("agent", "工具调用", "function calling", "langchain", "多轮对话", "tool")),
+    ("模型微调", ("sft", "微调", "lora", "qlora", "ptuning", "prompt tuning", "adapter", "peft")),
+    ("Transformer结构", ("transformer", "attention", "位置编码", "rope", "layernorm", "flashattention")),
+    ("推理优化与部署", ("推理", "部署", "kv cache", "vllm", "tensorrt", "量化", "paged attention")),
+    ("训练并行与系统", ("分布式", "deepspeed", "fsdp", "并行", "显存", "oom", "compile", "cuda")),
+    ("后训练与对齐", ("dpo", "ppo", "grpo", "reward model", "对齐", "偏好", "rlhf")),
+    ("强化学习与RLHF", ("强化学习", "rlhf", "奖励模型", "policy", "价值函数")),
+    ("多模态与视觉语言", ("多模态", "clip", "vlm", "视觉", "图像", "qformer")),
+    ("生成模型与扩散", ("diffusion", "stable diffusion", "扩散", "unet", "vae")),
+    ("数据工程与评测", ("数据集", "评测", "benchmark", "清洗", "标注", "采样")),
+    ("经典算法与编程", ("手撕", "代码实现", "复杂度", "排序", "链表", "树", "dp")),
+    ("LLM基础", ("llm", "大模型", "decoder only", "涌现", "token", "预训练", "chatgpt")),
+    ("多模态基础", ("cross attention", "视觉编码器", "图文", "音频", "视频")),
+    ("传统机器学习", ("svm", "xgboost", "逻辑回归", "adaboost", "随机森林")),
+]
 
-LOCAL_REPORT_QUESTION_RE = re.compile(r"^#\s*题目\d+[：:]\s*(.+?)\s*$", re.MULTILINE)
-TOP_HEADING_RE = re.compile(r"^#\s+(.+?)\s*$", re.MULTILINE)
-QUESTION_INDEX_LINE_RE = re.compile(r"\[\*\*(.+?)\*\*\]\((.+?)\)")
-MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
-RAW_HTML_TAG_RE = re.compile(r"</?[A-Za-z][^>\n]*>")
-LOCAL_IMAGE_RE = re.compile(r"!\[([^\]]*)\]\((?!https?://)([^)]+)\)")
+CHROME_PATHS = [
+    Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
+    Path(r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"),
+    Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),
+    Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
+]
 
 
 @dataclass
@@ -91,9 +136,79 @@ class NotesSection:
     questions: list[str]
 
 
+@dataclass
+class RawQuestion:
+    question: str
+    seed_answer: str
+    page_group: str
+    section_title: str
+    source_name: str
+    source_url: str
+    module: str
+    platform: str
+    company: str
+    seed_origin: str = ""
+
+
+@dataclass
+class SourceRef:
+    source_name: str
+    source_url: str
+    page_group: str
+    section_title: str
+    platform: str
+    company: str
+    module: str
+
+
+@dataclass
+class QuestionAggregate:
+    key: str
+    question: str
+    seed_answer: str
+    seed_origin: str
+    primary_tag: str
+    module: str
+    platform: str
+    sources: list[SourceRef] = field(default_factory=list)
+
+
+@dataclass
+class QuestionCard:
+    basics: list[str]
+    detailed_answer: str
+    case_simulation: str
+    generated_from: str
+
+
+@dataclass
+class ExternalFetchResult:
+    platform: str
+    title: str
+    company: str
+    url: str
+    status: str
+    message: str
+    question_count: int = 0
+
+
 def load_config(config_path: Path) -> dict:
     with config_path.open("r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+def init_client(config: dict) -> tuple[OpenAI | None, str]:
+    llm_config = config.get("llm", {})
+    api_key_env_name = llm_config.get("api_key_env_var", "LLM_API_KEY")
+    api_key = os.environ.get(api_key_env_name) or llm_config.get("api_key")
+    if not api_key or api_key == "YOUR_API_KEY_HERE":
+        return None, llm_config.get("model", "")
+    client = OpenAI(
+        api_key=api_key,
+        base_url=llm_config.get("base_url"),
+        timeout=300.0,
+    )
+    return client, llm_config.get("model", "")
 
 
 def safe_name(text: str) -> str:
@@ -105,31 +220,120 @@ def clean_markdown_text(text: str) -> str:
     text = MARKDOWN_LINK_RE.sub(lambda m: m.group(1), text)
     text = text.replace("**", "").replace("`", "")
     text = re.sub(r"<[^>]+>", "", text)
-    return re.sub(r"\s+", " ", text).strip()
+    return re.sub(r"\s+", " ", unescape(text)).strip()
+
+
+def strip_html(html_text: str) -> str:
+    text = html_text.replace("<br>", "\n").replace("<br/>", "\n").replace("<br />", "\n")
+    text = re.sub(r"</?(p|div|li|ul|ol|details|summary|blockquote|h\d)[^>]*>", "\n", text)
+    text = re.sub(r"</?pre[^>]*>", "\n```text\n", text)
+    text = re.sub(r"</?code[^>]*>", "`", text)
+    text = re.sub(r"<a [^>]*>(.*?)</a>", r"\1", text, flags=re.S)
+    text = re.sub(r"<img [^>]*>", "", text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = unescape(text)
+    text = text.replace("\r", "")
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
 
 
 def normalize_text(text: str) -> str:
     text = clean_markdown_text(text).lower()
-    text = re.sub(r"[（）()【】\[\]《》<>“”‘’\"'`·\-—_,.;:：，。！？!?/\\|]", "", text)
-    text = re.sub(r"\s+", "", text)
+    text = re.sub(r"[（）()【】\[\]{}<>“”‘’'\"`·,.;:：，。！？!？/\\|@#%^&*_+=\-~\s]", "", text)
     return text
+
+
+def trim_text(text: str, limit: int = 1200) -> str:
+    text = text.strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rstrip() + "…"
+
+
+def sanitize_markdown_html(text: str) -> str:
+    sanitized = RAW_HTML_TAG_RE.sub(
+        lambda matched: matched.group(0).replace("<", "&lt;").replace(">", "&gt;"),
+        text,
+    )
+    return LOCAL_IMAGE_RE.sub(lambda matched: f"> 图示见原仓库资源：{matched.group(2)}", sanitized)
 
 
 def is_question_like(text: str) -> bool:
     candidate = clean_markdown_text(text)
     if len(candidate) < 4:
         return False
-    if candidate.startswith("点击查看答案"):
+    if candidate in {"前言", "...", "略"}:
         return False
-    if "http" in candidate.lower():
-        return False
-    if candidate.endswith(("？", "?")):
+    if candidate.endswith(("?", "？")):
         return True
-    return any(keyword in candidate for keyword in QUESTION_LIKE_KEYWORDS)
+    return any(keyword.lower() in candidate.lower() for keyword in QUESTION_LIKE_KEYWORDS)
+
+
+def similarity_score(left: str, right: str) -> float:
+    norm_left = normalize_text(left)
+    norm_right = normalize_text(right)
+    if not norm_left or not norm_right:
+        return 0.0
+    if norm_left == norm_right:
+        return 1.0
+    if norm_left in norm_right or norm_right in norm_left:
+        shorter = min(len(norm_left), len(norm_right))
+        longer = max(len(norm_left), len(norm_right))
+        return 0.78 + 0.20 * (shorter / max(longer, 1))
+    return SequenceMatcher(None, norm_left, norm_right).ratio()
+
+
+def best_answer_match(question: str, answer_bank: list[QAItem], threshold: float = 0.66) -> tuple[QAItem | None, float]:
+    best_item = None
+    best_score = 0.0
+    for item in answer_bank:
+        score = similarity_score(question, item.question)
+        if score > best_score:
+            best_score = score
+            best_item = item
+    if best_score >= threshold:
+        return best_item, best_score
+    return None, best_score
+
+
+def chunk_list(items: list, chunk_size: int) -> list[list]:
+    return [items[index:index + chunk_size] for index in range(0, len(items), chunk_size)]
+
+
+def parse_json_payload(text: str) -> object:
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        matched = re.search(r"```(?:json)?(.*?)```", text, re.DOTALL)
+        if matched:
+            return json.loads(matched.group(1).strip())
+    raise ValueError("无法从模型输出中解析 JSON")
+
+
+def load_card_cache(cache_path: Path) -> dict[str, dict]:
+    if not cache_path.exists():
+        return {}
+    return json.loads(cache_path.read_text(encoding="utf-8"))
+
+
+def save_card_cache(cache_path: Path, cache: dict[str, dict]) -> None:
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(
+        json.dumps(cache, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 def run_git_command(args: list[str], cwd: Path | None = None) -> None:
-    subprocess.run(args, cwd=str(cwd) if cwd else None, check=True, capture_output=True, text=True, encoding="utf-8")
+    subprocess.run(
+        args,
+        cwd=str(cwd) if cwd else None,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
 
 
 def ensure_repo_cloned(base_dir: Path, repo_name: str, repo_url: str) -> Path:
@@ -144,7 +348,7 @@ def ensure_repo_cloned(base_dir: Path, repo_name: str, repo_url: str) -> Path:
 
 def parse_heading_blocks(markdown_text: str) -> list[tuple[str, str]]:
     matches = list(TOP_HEADING_RE.finditer(markdown_text))
-    blocks = []
+    blocks: list[tuple[str, str]] = []
     for index, matched in enumerate(matches):
         title = clean_markdown_text(matched.group(1))
         start = matched.end()
@@ -162,16 +366,49 @@ def parse_repo1_qas(repo_root: Path) -> list[QAItem]:
             continue
         content = target_path.read_text(encoding="utf-8")
         for title, body in parse_heading_blocks(content):
-            question = re.sub(r"^\d+\.\s*", "", title).strip()
+            question = re.sub(r"^\d+[\.、]\s*", "", title).strip()
+            if len(question) < 3:
+                continue
             results.append(
                 QAItem(
                     question=question,
                     answer=body.strip(),
                     source_label=f"{module_name}:{relative_path}",
-                    source_url=f"https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/{relative_path.replace(os.sep, '/')}",
+                    source_url=(
+                        "https://github.com/315386775/DeepLearing-Interview-Awesome-2024/"
+                        f"blob/main/{relative_path.replace(os.sep, '/')}"
+                    ),
                 )
             )
     return results
+
+
+def parse_repo1_raw_questions(repo1_qas: list[QAItem]) -> list[RawQuestion]:
+    raw_questions: list[RawQuestion] = []
+    path_to_module = {
+        relative_path.replace(os.sep, "/"): module_name
+        for module_name, relative_path in DEEPLEARNING_MODULES
+    }
+    for item in repo1_qas:
+        matched_module = next(
+            (module_name for path_key, module_name in path_to_module.items() if path_key in item.source_label),
+            "DeepLearing-Interview-Awesome-2024",
+        )
+        raw_questions.append(
+            RawQuestion(
+                question=item.question,
+                seed_answer=item.answer.strip(),
+                page_group=matched_module,
+                section_title="原仓库题解",
+                source_name="DeepLearing-Interview-Awesome-2024",
+                source_url=item.source_url,
+                module=matched_module,
+                platform="github",
+                company="未知",
+                seed_origin="原仓库答案",
+            )
+        )
+    return raw_questions
 
 
 def parse_local_reports_qas(base_dir: Path) -> list[QAItem]:
@@ -202,180 +439,6 @@ def parse_local_reports_qas(base_dir: Path) -> list[QAItem]:
                 )
             )
     return items
-
-
-def similarity_score(left: str, right: str) -> float:
-    norm_left = normalize_text(left)
-    norm_right = normalize_text(right)
-    if not norm_left or not norm_right:
-        return 0.0
-    if norm_left in norm_right or norm_right in norm_left:
-        shorter = min(len(norm_left), len(norm_right))
-        longer = max(len(norm_left), len(norm_right))
-        return 0.72 + 0.25 * (shorter / max(longer, 1))
-    return SequenceMatcher(None, norm_left, norm_right).ratio()
-
-
-def best_answer_match(question: str, answer_bank: list[QAItem], threshold: float = 0.60) -> tuple[QAItem | None, float]:
-    best_item = None
-    best_score = 0.0
-    for item in answer_bank:
-        score = similarity_score(question, item.question)
-        if score > best_score:
-            best_score = score
-            best_item = item
-    if best_score >= threshold:
-        return best_item, best_score
-    return None, best_score
-
-
-def trim_answer(text: str, limit: int = 1200) -> str:
-    cleaned = text.strip()
-    if len(cleaned) <= limit:
-        return cleaned
-    return cleaned[: limit - 1].rstrip() + "…"
-
-
-def sanitize_markdown_html(text: str) -> str:
-    sanitized = RAW_HTML_TAG_RE.sub(
-        lambda matched: matched.group(0).replace("<", "&lt;").replace(">", "&gt;"),
-        text,
-    )
-    return LOCAL_IMAGE_RE.sub(lambda matched: f"> 图示见原仓库资源：{matched.group(2)}", sanitized)
-
-
-def init_client(config: dict) -> tuple[OpenAI | None, str]:
-    llm_config = config.get("llm", {})
-    api_key_env_name = llm_config.get("api_key_env_var", "LLM_API_KEY")
-    api_key = os.environ.get(api_key_env_name) or llm_config.get("api_key")
-    if not api_key or api_key == "YOUR_API_KEY_HERE":
-        return None, llm_config.get("model", "")
-    client = OpenAI(
-        api_key=api_key,
-        base_url=llm_config.get("base_url"),
-        timeout=300.0,
-    )
-    return client, llm_config.get("model", "")
-
-
-def parse_json_payload(text: str) -> dict:
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        matched = re.search(r"```(?:json)?(.*?)```", text, re.DOTALL)
-        if matched:
-            return json.loads(matched.group(1).strip())
-    raise ValueError("无法从模型输出中解析 JSON")
-
-
-def parse_structured_answers(text: str) -> list[tuple[str, str]]:
-    pattern = re.compile(
-        r"^###\s*\d+.*?\nQ:\s*(.*?)\nA:\s*(.*?)(?=^###\s*\d+|\Z)",
-        re.MULTILINE | re.DOTALL,
-    )
-    pairs = []
-    for matched in pattern.finditer(text):
-        question = clean_markdown_text(matched.group(1))
-        answer = matched.group(2).strip()
-        if question and answer:
-            pairs.append((question, answer))
-    return pairs
-
-
-def generate_answers_with_llm(
-    client: OpenAI | None,
-    model_name: str,
-    major_group: str,
-    section_title: str,
-    questions: list[str],
-) -> dict[str, str]:
-    if client is None or not questions:
-        return {question: "未匹配到现成答案，且当前未配置可用 LLM，建议后续补充解析。" for question in questions}
-
-    numbered_questions = "\n".join(f"{index}. {question}" for index, question in enumerate(questions, start=1))
-    system_prompt = (
-        "你是资深 AI 算法面试官与大模型工程师。"
-        "请针对给定的一组中文面试题，给出简洁但靠谱的中文解析。"
-        "严格按如下文本格式输出，不要使用 JSON，不要省略任何题目：\n"
-        "### 1\nQ: 问题原文\nA: 对应答案\n"
-        "### 2\nQ: 问题原文\nA: 对应答案\n"
-        "answer 要满足：1）120-220字；2）先给结论，再给关键点；3）适合大厂 AI 算法面试；4）避免空话。"
-    )
-    user_prompt = (
-        f"专题大类：{major_group}\n"
-        f"专题小节：{section_title}\n"
-        f"请回答下面这些问题：\n{numbered_questions}"
-    )
-
-    try:
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.3,
-        )
-        parsed_pairs = parse_structured_answers(response.choices[0].message.content)
-        result = {question: answer for question, answer in parsed_pairs}
-        if len(result) >= len(questions):
-            return {question: result.get(clean_markdown_text(question), result.get(question, "未成功生成自动解析，建议后续补充。")) for question in questions}
-    except Exception:
-        result = {}
-
-    if len(questions) == 1:
-        return {questions[0]: "未成功生成自动解析，建议后续补充。"}
-
-    merged: dict[str, str] = {}
-    for batch in chunk_list(questions, 1):
-        merged.update(generate_answers_with_llm(client, model_name, major_group, section_title, batch))
-    return merged
-
-
-def generate_major_group_summary(
-    client: OpenAI | None,
-    model_name: str,
-    major_group: str,
-    sections: list[NotesSection],
-) -> str:
-    representative_questions: list[str] = []
-    for section in sections:
-        representative_questions.extend(section.questions[:2])
-        if len(representative_questions) >= 10:
-            break
-    representative_questions = representative_questions[:10]
-
-    if client is None or not representative_questions:
-        return "当前未配置可用 LLM，已保留原始题目清单与可匹配的现成答案，后续可继续补全专题总结。"
-
-    numbered_questions = "\n".join(f"{index}. {question}" for index, question in enumerate(representative_questions, start=1))
-    system_prompt = (
-        "你是资深 AI 算法面试官。"
-        "请根据一个大专题下的代表性问题，生成一段适合知识库网页阅读的中文总结。"
-        "输出必须是 Markdown，结构固定为："
-        "\n## 本专题考什么\n- ..."
-        "\n## 答题主线\n- ..."
-        "\n## 代表题答法\n### 问题1\n..."
-        "\n### 问题2\n..."
-        "\n只总结最值得准备的内容，避免空话。"
-    )
-    user_prompt = (
-        f"专题名称：{major_group}\n"
-        "请根据这些代表题，输出本专题的核心知识点、答题主线和代表题答法：\n"
-        f"{numbered_questions}"
-    )
-    try:
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.3,
-        )
-        return response.choices[0].message.content.strip()
-    except Exception:
-        return "自动专题总结生成失败，本页仍保留全量原始题目清单与可复用答案。"
 
 
 def parse_repo2_sections(repo_root: Path) -> list[NotesSection]:
@@ -415,110 +478,481 @@ def parse_repo2_sections(repo_root: Path) -> list[NotesSection]:
             )
             continue
 
-        if current_section is None:
-            continue
-
-        if "点击查看答案" in line:
+        if current_section is None or "点击查看答案" in line:
             continue
 
         bullet_match = re.match(r"^\s*-\s+(.+?)\s*$", line)
         if not bullet_match:
             continue
+
         question = clean_markdown_text(bullet_match.group(1))
-        if is_question_like(question):
+        if question and question not in {"...", "……"} and is_question_like(question):
             current_section.questions.append(question)
 
     flush_current()
     return sections
 
 
-def chunk_list(items: list[str], chunk_size: int) -> list[list[str]]:
-    return [items[index:index + chunk_size] for index in range(0, len(items), chunk_size)]
+def parse_repo2_raw_questions(sections: list[NotesSection], answer_bank: list[QAItem]) -> list[RawQuestion]:
+    raw_questions: list[RawQuestion] = []
+    for section in sections:
+        for question in section.questions:
+            matched_item, _ = best_answer_match(question, answer_bank, threshold=0.72)
+            seed_answer = matched_item.answer if matched_item else ""
+            seed_origin = f"近似题匹配：{matched_item.source_label}" if matched_item else ""
+            raw_questions.append(
+                RawQuestion(
+                    question=question,
+                    seed_answer=seed_answer,
+                    page_group=section.major_group,
+                    section_title=section.title,
+                    source_name="LLMs_interview_notes",
+                    source_url=section.source_url,
+                    module=section.major_group,
+                    platform="github",
+                    company="未知",
+                    seed_origin=seed_origin,
+                )
+            )
+    return raw_questions
 
 
-def build_repo2_answer_pages(
-    sections: list[NotesSection],
-    answer_bank: list[QAItem],
+def find_browser_path() -> Path | None:
+    for path in CHROME_PATHS:
+        if path.exists():
+            return path
+    return None
+
+
+def extract_json_object_from_html(html_text: str, marker: str) -> dict | None:
+    marker_index = html_text.find(marker)
+    if marker_index < 0:
+        return None
+    start = marker_index + len(marker)
+    sub = html_text[start:]
+    level = 0
+    in_string = False
+    escape = False
+    started = False
+    end = None
+    for index, char in enumerate(sub):
+        if in_string:
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            level += 1
+            started = True
+        elif char == "}":
+            level -= 1
+            if started and level == 0:
+                end = index + 1
+                break
+    if end is None:
+        return None
+    payload = sub[:end]
+    payload = re.sub(r"(?<=[:\[,])undefined(?=[,}\]])", "null", payload)
+    payload = re.sub(r"(?<=[:\[,])NaN(?=[,}\]])", "null", payload)
+    return json.loads(payload)
+
+
+def fetch_nowcoder_source(url: str) -> tuple[str, str]:
+    response = requests.get(url, headers=REQUEST_HEADERS, timeout=30)
+    response.raise_for_status()
+    data = extract_json_object_from_html(response.text, "window.__INITIAL_STATE__=")
+    if not data:
+        raise ValueError("页面中未找到牛客内容状态")
+    content_data = data["prefetchData"]["2"]["ssrCommonData"]["contentData"]
+    show_message = content_data.get("showMessage", {})
+    if show_message and show_message.get("message") not in {"", None}:
+        raise ValueError(show_message["message"])
+    title = clean_markdown_text(content_data.get("title", "牛客面经"))
+    content = strip_html(content_data.get("content", ""))
+    if not content:
+        raise ValueError("牛客页面未提取到正文")
+    return title, content
+
+
+def fetch_zhihu_source(url: str) -> tuple[str, str]:
+    response = requests.get(url, headers=REQUEST_HEADERS, timeout=30, allow_redirects=True)
+    if response.status_code == 200 and "error" not in response.text[:400].lower():
+        title_match = re.search(r"<title>(.*?)</title>", response.text, re.S)
+        title = clean_markdown_text(title_match.group(1)) if title_match else "知乎面经"
+        article_match = re.search(r"<article[^>]*>(.*?)</article>", response.text, re.S)
+        if article_match:
+            content = strip_html(article_match.group(1))
+            if content:
+                return title, content
+
+    browser_path = find_browser_path()
+    if browser_path is None:
+        raise ValueError("本机未找到可用浏览器，知乎页面又直接访问受限")
+
+    command = [
+        str(browser_path),
+        "--headless=new",
+        "--disable-gpu",
+        "--dump-dom",
+        url,
+    ]
+    dump = subprocess.run(command, check=True, capture_output=True, text=True, encoding="utf-8").stdout
+    if "请求存在异常" in dump or '"code":40362' in dump:
+        raise ValueError("知乎触发反爬限制")
+    title_match = re.search(r"<title>(.*?)</title>", dump, re.S)
+    title = clean_markdown_text(title_match.group(1)) if title_match else "知乎面经"
+    article_match = re.search(r"<article[^>]*>(.*?)</article>", dump, re.S)
+    if not article_match:
+        raise ValueError("知乎页面未提取到 article 正文")
+    content = strip_html(article_match.group(1))
+    if not content:
+        raise ValueError("知乎正文为空")
+    return title, content
+
+
+def fetch_xiaohongshu_source(url: str) -> tuple[str, str]:
+    browser_path = find_browser_path()
+    if browser_path is None:
+        raise ValueError("本机未找到可用浏览器，无法尝试抓取小红书页面")
+    command = [
+        str(browser_path),
+        "--headless=new",
+        "--disable-gpu",
+        "--dump-dom",
+        url,
+    ]
+    dump = subprocess.run(command, check=True, capture_output=True, text=True, encoding="utf-8").stdout
+    if "安全限制" in dump or "IP存在风险" in dump:
+        raise ValueError("小红书触发安全限制")
+    title_match = re.search(r"<title>(.*?)</title>", dump, re.S)
+    title = clean_markdown_text(title_match.group(1)) if title_match else "小红书面经"
+    state = extract_json_object_from_html(dump, "window.__INITIAL_STATE__=")
+    if state:
+        note_state = state.get("note", {})
+        note_map = note_state.get("noteDetailMap", {})
+        for value in note_map.values():
+            note = value.get("note") or {}
+            content = note.get("desc", "") or note.get("content", "")
+            if content:
+                return title, strip_html(content)
+    raise ValueError("小红书页面未提取到正文")
+
+
+def load_external_sources(config_path: Path) -> list[dict]:
+    if not config_path.exists():
+        return []
+    payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    return payload.get("sources", [])
+
+
+def extract_questions_from_article_text(text: str) -> list[str]:
+    lines = [clean_markdown_text(line) for line in text.splitlines()]
+    questions: list[str] = []
+    for line in lines:
+        if not line or "获取更多面经" in line or "点击查看答案" in line:
+            continue
+        matched = QUESTION_LINE_RE.match(line)
+        candidate = matched.group(1).strip() if matched else line.strip()
+        candidate = re.sub(r"^[\(（[]?\d+[\)）\].、:：-]?\s*", "", candidate)
+        if len(candidate) < 3:
+            continue
+        if candidate in {"前言", "背景", "总结", "反问", "论文拷打"}:
+            continue
+        if is_question_like(candidate) or len(candidate) <= 40:
+            questions.append(candidate)
+    return list(dict.fromkeys(questions))
+
+
+def fetch_external_sources(source_specs: list[dict]) -> tuple[list[RawQuestion], list[ExternalFetchResult]]:
+    raw_questions: list[RawQuestion] = []
+    results: list[ExternalFetchResult] = []
+
+    for spec in source_specs:
+        if spec.get("enabled", True) is False:
+            continue
+        platform = spec.get("platform", "").strip().lower()
+        url = spec.get("url", "").strip()
+        company = spec.get("company", "未知").strip() or "未知"
+        title_hint = spec.get("title", "").strip()
+        module = spec.get("module", "真实面经")
+        if not platform or not url:
+            continue
+
+        try:
+            if platform == "nowcoder":
+                title, content = fetch_nowcoder_source(url)
+            elif platform == "zhihu":
+                title, content = fetch_zhihu_source(url)
+            elif platform == "xiaohongshu":
+                title, content = fetch_xiaohongshu_source(url)
+            else:
+                raise ValueError(f"暂不支持的平台：{platform}")
+
+            page_title = title_hint or title
+            questions = extract_questions_from_article_text(content)
+            for question in questions:
+                raw_questions.append(
+                    RawQuestion(
+                        question=question,
+                        seed_answer="",
+                        page_group=f"{platform}_{company}_{page_title}",
+                        section_title=page_title,
+                        source_name=f"真实面经_{platform}",
+                        source_url=url,
+                        module=module,
+                        platform=platform,
+                        company=company,
+                        seed_origin="",
+                    )
+                )
+            results.append(
+                ExternalFetchResult(
+                    platform=platform,
+                    title=page_title,
+                    company=company,
+                    url=url,
+                    status="success",
+                    message="抓取成功",
+                    question_count=len(questions),
+                )
+            )
+        except Exception as exc:
+            results.append(
+                ExternalFetchResult(
+                    platform=platform,
+                    title=title_hint or "未命名来源",
+                    company=company,
+                    url=url,
+                    status="failed",
+                    message=str(exc),
+                    question_count=0,
+                )
+            )
+
+    return raw_questions, results
+
+
+def infer_tag(*values: str) -> str:
+    haystack = " ".join(value for value in values if value).lower()
+    for tag, keywords in TAG_KEYWORDS:
+        if any(keyword.lower() in haystack for keyword in keywords):
+            return tag
+    return "其他"
+
+
+def choose_better_seed(existing_answer: str, candidate_answer: str) -> bool:
+    return len(candidate_answer.strip()) > len(existing_answer.strip())
+
+
+def merge_questions(raw_questions: list[RawQuestion], answer_bank: list[QAItem]) -> list[QuestionAggregate]:
+    aggregates: list[QuestionAggregate] = []
+
+    for raw in raw_questions:
+        seed_answer = raw.seed_answer.strip()
+        seed_origin = raw.seed_origin
+        if not seed_answer:
+            matched_item, _ = best_answer_match(raw.question, answer_bank, threshold=0.72)
+            if matched_item is not None:
+                seed_answer = matched_item.answer.strip()
+                seed_origin = f"近似题匹配：{matched_item.source_label}"
+
+        matched_aggregate: QuestionAggregate | None = None
+        best_score = 0.0
+        for aggregate in aggregates:
+            score = similarity_score(raw.question, aggregate.question)
+            if score > best_score:
+                best_score = score
+                matched_aggregate = aggregate
+        if matched_aggregate is None or best_score < 0.95:
+            aggregate = QuestionAggregate(
+                key=md5(normalize_text(raw.question).encode("utf-8")).hexdigest(),
+                question=raw.question,
+                seed_answer=seed_answer,
+                seed_origin=seed_origin,
+                primary_tag=infer_tag(raw.module, raw.section_title, raw.question),
+                module=raw.module,
+                platform=raw.platform,
+            )
+            aggregate.sources.append(
+                SourceRef(
+                    source_name=raw.source_name,
+                    source_url=raw.source_url,
+                    page_group=raw.page_group,
+                    section_title=raw.section_title,
+                    platform=raw.platform,
+                    company=raw.company,
+                    module=raw.module,
+                )
+            )
+            aggregates.append(aggregate)
+            continue
+
+        matched_aggregate.sources.append(
+            SourceRef(
+                source_name=raw.source_name,
+                source_url=raw.source_url,
+                page_group=raw.page_group,
+                section_title=raw.section_title,
+                platform=raw.platform,
+                company=raw.company,
+                module=raw.module,
+            )
+        )
+        if choose_better_seed(matched_aggregate.seed_answer, seed_answer):
+            matched_aggregate.seed_answer = seed_answer
+            matched_aggregate.seed_origin = seed_origin
+        if matched_aggregate.primary_tag == "其他":
+            matched_aggregate.primary_tag = infer_tag(raw.module, raw.section_title, raw.question)
+
+    return aggregates
+
+
+def build_generation_signature(aggregate: QuestionAggregate) -> str:
+    seed_fragment = normalize_text(trim_text(aggregate.seed_answer, 600))
+    return md5(f"{normalize_text(aggregate.question)}|{seed_fragment}|{aggregate.primary_tag}".encode("utf-8")).hexdigest()
+
+
+def generate_cards_batch(
     client: OpenAI | None,
     model_name: str,
-) -> list[tuple[str, str]]:
-    pages: list[tuple[str, str]] = []
-    by_major: dict[str, list[NotesSection]] = defaultdict(list)
-    for section in sections:
-        by_major[section.major_group].append(section)
+    batch: list[QuestionAggregate],
+) -> dict[str, QuestionCard]:
+    if client is None:
+        return {
+            item.key: QuestionCard(
+                basics=["建议补充定义", "建议补充公式或模块", "建议补充工程取舍"],
+                detailed_answer="当前未配置可用 LLM，暂未生成详细解答。",
+                case_simulation="当前未配置可用 LLM，暂未生成案例模拟。",
+                generated_from="fallback",
+            )
+            for item in batch
+        }
 
-    for major_group, major_sections in by_major.items():
-        lines = [
-            f"# LLMs_interview_notes 提取：{major_group}",
-            "",
-            "> 来源仓库：https://github.com/km1994/LLMs_interview_notes",
-            "> 说明：该仓库大量内容以“题目目录 + 外链答案”形式存在，本页保留全量题目清单，并优先复用本仓库现成答案，再补充专题级总结。",
-            "",
-            "## 专题总结",
-            "",
-            generate_major_group_summary(client, model_name, major_group, major_sections),
-            "",
-        ]
-        for section in major_sections:
-            lines.append(f"## {section.title}")
-            lines.append("")
-            if section.source_url:
-                lines.append(f"- 来源链接：{section.source_url}")
-            lines.append(f"- 题目数：{len(section.questions)}")
-            lines.append("")
-            lines.append("### 原始题目")
-            lines.append("")
-            for index, question in enumerate(section.questions, start=1):
-                lines.append(f"{index}. {question}")
-            lines.append("")
+    payload = []
+    for item in batch:
+        payload.append(
+            {
+                "id": item.key,
+                "question": item.question,
+                "topic": item.primary_tag,
+                "module": item.module,
+                "reference_answer": trim_text(item.seed_answer, 900),
+            }
+        )
 
-            matched_examples: list[tuple[str, str, str, float]] = []
-            for question in section.questions:
-                matched_item, score = best_answer_match(question, answer_bank, threshold=0.68)
-                if matched_item is not None:
-                    matched_examples.append(
-                        (
-                            question,
-                            trim_answer(matched_item.answer, 700),
-                            matched_item.source_label,
-                            score,
-                        )
-                    )
-                if len(matched_examples) >= 2:
-                    break
+    system_prompt = (
+        "你是资深 AI 算法面试官和知识库编辑。"
+        "请把输入的一批面试题整理成网页资料卡。"
+        "必须返回 JSON 数组，数组元素字段固定为："
+        '[{"id":"题目id","basics":["点1","点2","点3"],"detailed_answer":"...","case_simulation":"..."}]。'
+        "规则如下："
+        "1. basics 必须正好 3 条，每条 10-28 个中文字符，补充基础概念、关键模块、公式或工程术语；"
+        "2. detailed_answer 220-420 个中文字符，先给结论，再解释原理、对比、工程权衡；"
+        "3. case_simulation 120-220 个中文字符，给一个面试追问回答示例，或一个项目/业务案例模拟；"
+        "4. 如果给了 reference_answer，优先吸收其中信息，但要改写得清晰、完整、适合网页阅读；"
+        "5. 不要遗漏任何题，不要输出额外说明。"
+    )
 
-            if matched_examples:
-                lines.append("### 可直接复用的答案")
-                lines.append("")
-                for index, (question, answer_text, answer_source, score) in enumerate(matched_examples, start=1):
-                    lines.append(f"#### 示例 {index}. {question}")
-                    lines.append("")
-                    lines.append(answer_text)
-                    lines.append("")
-                    lines.append(f"> 匹配来源：{answer_source} | 匹配分数：{score:.2f}")
-                    lines.append("")
+    try:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
+            ],
+            temperature=0.25,
+        )
+        parsed = parse_json_payload(response.choices[0].message.content)
+        if not isinstance(parsed, list):
+            raise ValueError("模型未返回 JSON 数组")
+        cards: dict[str, QuestionCard] = {}
+        for item in parsed:
+            if not isinstance(item, dict) or "id" not in item:
+                continue
+            basics = item.get("basics") or []
+            if not isinstance(basics, list):
+                basics = []
+            basics = [clean_markdown_text(str(text)) for text in basics if clean_markdown_text(str(text))]
+            while len(basics) < 3:
+                basics.append("建议补充相关概念")
+            cards[str(item["id"])] = QuestionCard(
+                basics=basics[:3],
+                detailed_answer=clean_markdown_text(str(item.get("detailed_answer", ""))),
+                case_simulation=clean_markdown_text(str(item.get("case_simulation", ""))),
+                generated_from="llm",
+            )
+        if len(cards) != len(batch):
+            raise ValueError("模型返回题卡数量不完整")
+        return cards
+    except Exception:
+        if len(batch) == 1:
+            item = batch[0]
+            return {
+                item.key: QuestionCard(
+                    basics=["先定义核心概念", "再解释关键机制", "最后补工程取舍"],
+                    detailed_answer=(
+                        f"这道题建议先给一句结论：{item.question} 的回答要围绕定义、核心原理和工程权衡展开。"
+                        "如果你有项目经验，可以补充自己实际做过的方案、踩过的坑和最终指标变化；"
+                        "如果没有项目经验，就用模型结构、训练目标、推理成本、效果收益这四个角度来组织回答。"
+                    ),
+                    case_simulation=(
+                        "面试表达可以这样收尾：先说清楚这个方法解决了什么问题，再补一句它的代价是什么，"
+                        "最后用“如果让我在项目里落地，我会先做小规模验证”来体现工程意识。"
+                    ),
+                    generated_from="fallback",
+                )
+            }
 
-        pages.append((major_group, "\n".join(lines)))
-    return pages
+    cards: dict[str, QuestionCard] = {}
+    for sub_batch in chunk_list(batch, 1):
+        cards.update(generate_cards_batch(client, model_name, sub_batch))
+    return cards
 
 
-def render_repo1_page(title: str, qas: list[QAItem], source_url: str) -> str:
-    lines = [
-        f"# GitHub 提取：{title}",
-        "",
-        f"> 来源仓库：[DeepLearing-Interview-Awesome-2024]({source_url})",
-        f"> 本页共整理 {len(qas)} 道题，尽量保留原仓库答案；若原仓库缺少解析，则自动补齐。",
-        "",
-    ]
-    for index, item in enumerate(qas, start=1):
-        lines.append(f"## {index}. {item.question}")
-        lines.append("")
-        if item.answer:
-            lines.append(item.answer.strip())
+def enrich_question_cards(
+    aggregates: list[QuestionAggregate],
+    cache: dict[str, dict],
+    client: OpenAI | None,
+    model_name: str,
+) -> dict[str, QuestionCard]:
+    card_map: dict[str, QuestionCard] = {}
+    pending: list[QuestionAggregate] = []
+
+    for aggregate in aggregates:
+        signature = build_generation_signature(aggregate)
+        cached = cache.get(aggregate.key)
+        if cached and cached.get("signature") == signature:
+            card_map[aggregate.key] = QuestionCard(
+                basics=cached["basics"],
+                detailed_answer=cached["detailed_answer"],
+                case_simulation=cached["case_simulation"],
+                generated_from=cached.get("generated_from", "cache"),
+            )
         else:
-            lines.append("原仓库未提供解析，本次未匹配到可用答案。")
-        lines.append("")
-    return "\n".join(lines)
+            pending.append(aggregate)
+
+    total_batches = len(chunk_list(pending, 8))
+    for batch_index, batch in enumerate(chunk_list(pending, 8), start=1):
+        print(f"[*] 生成题卡批次 {batch_index}/{total_batches}，本批 {len(batch)} 题")
+        generated_cards = generate_cards_batch(client, model_name, batch)
+        for aggregate in batch:
+            card = generated_cards[aggregate.key]
+            card_map[aggregate.key] = card
+            cache[aggregate.key] = {
+                "question": aggregate.question,
+                "signature": build_generation_signature(aggregate),
+                "basics": card.basics,
+                "detailed_answer": card.detailed_answer,
+                "case_simulation": card.case_simulation,
+                "generated_from": card.generated_from,
+            }
+
+    return card_map
 
 
 def write_text(path: Path, content: str) -> None:
@@ -527,31 +961,144 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(sanitized, encoding="utf-8", newline="\n")
 
 
-def render_overview(repo1_pages: list[tuple[str, int]], repo2_pages: list[tuple[str, int]]) -> str:
+def render_source_links(sources: list[SourceRef]) -> list[str]:
+    unique_items: list[tuple[str, str]] = []
+    seen = set()
+    for source in sources:
+        label = f"{source.source_name} / {source.section_title} / {source.company or '未知'}"
+        key = (label, source.source_url)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_items.append(key)
+    lines: list[str] = []
+    for label, url in unique_items[:5]:
+        if url:
+            lines.append(f"- 来源：[{label}]({url})")
+        else:
+            lines.append(f"- 来源：{label}")
+    if len(unique_items) > 5:
+        lines.append(f"- 其余来源：还有 {len(unique_items) - 5} 条相似题来源")
+    return lines
+
+
+def render_card(index: int, aggregate: QuestionAggregate, card: QuestionCard) -> str:
     lines = [
-        "# GitHub 面经仓库提取总览",
+        f"### {index}. {aggregate.question}",
+        "",
+        f"- 主标签：{aggregate.primary_tag}",
+        f"- 来源条数：{len(aggregate.sources)}",
+        f"- 答案生成方式：{aggregate.seed_origin or '模型自动补全'}",
+    ]
+    lines.extend(render_source_links(aggregate.sources))
+    lines.extend(["", "### 基础知识补充", ""])
+    for point in card.basics:
+        lines.append(f"- {point}")
+    lines.extend(
+        [
+            "",
+            "### 详细解答",
+            "",
+            card.detailed_answer,
+            "",
+            "### 案例模拟",
+            "",
+            card.case_simulation,
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def render_source_page(
+    title: str,
+    intro_lines: list[str],
+    grouped_questions: list[tuple[str, list[QuestionAggregate]]],
+    card_map: dict[str, QuestionCard],
+) -> str:
+    lines = [f"# {title}", ""]
+    lines.extend(intro_lines)
+    lines.append("")
+    counter = 1
+    for section_title, questions in grouped_questions:
+        if section_title:
+            lines.extend([f"## {section_title}", ""])
+        for aggregate in questions:
+            lines.append(render_card(counter, aggregate, card_map[aggregate.key]))
+            counter += 1
+    return "\n".join(lines)
+
+
+def build_page_groups(
+    raw_questions: list[RawQuestion],
+    aggregate_map: dict[str, QuestionAggregate],
+) -> dict[tuple[str, str], dict[str, list[QuestionAggregate]]]:
+    page_groups: dict[tuple[str, str], dict[str, list[QuestionAggregate]]] = defaultdict(lambda: defaultdict(list))
+    seen: dict[tuple[str, str], set[str]] = defaultdict(set)
+
+    for raw in raw_questions:
+        key = md5(normalize_text(raw.question).encode("utf-8")).hexdigest()
+        if key not in aggregate_map:
+            for aggregate in aggregate_map.values():
+                if similarity_score(raw.question, aggregate.question) >= 0.95:
+                    key = aggregate.key
+                    break
+        if key not in aggregate_map:
+            continue
+        group_key = (raw.source_name, raw.page_group)
+        if key in seen[group_key]:
+            continue
+        seen[group_key].add(key)
+        page_groups[group_key][raw.section_title].append(aggregate_map[key])
+
+    return page_groups
+
+
+def render_overview(
+    raw_questions: list[RawQuestion],
+    aggregates: list[QuestionAggregate],
+    external_results: list[ExternalFetchResult],
+    source_page_meta: list[tuple[str, int]],
+    merged_page_meta: list[tuple[str, int]],
+) -> str:
+    source_counter = Counter(item.source_name for item in raw_questions)
+    platform_counter = Counter(item.platform for item in raw_questions)
+    lines = [
+        "# 全自动面经资料卡总览",
         "",
         f"> 自动生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        "> 提取来源：",
-        "> - https://github.com/315386775/DeepLearing-Interview-Awesome-2024",
-        "> - https://github.com/km1994/LLMs_interview_notes",
+        f"> 原始题目总数：{len(raw_questions)}",
+        f"> 去重后题目总数：{len(aggregates)}",
         "",
         "## 本次导入策略",
         "",
-        "- 对于仓库内已有答案的题目，直接抽取并归一化成站点资料。",
-        "- 对于只有题目目录的内容，优先匹配本仓库已有题解与另一个仓库中的近似答案。",
-        "- 对于仍然缺失的题目，再用大模型自动补全简洁解析。",
+        "- 两个 GitHub 仓库统一抽题，并把已有答案转成标准化网页题卡。",
+        "- 对没有现成答案的题目，优先做近似题匹配，再由大模型补全“基础知识补充 + 详细解答 + 案例模拟”。",
+        "- 真实面经 URL 和 GitHub 题库进入同一条流水线，统一去重、统一生成网页页面。",
         "",
-        "## 产出页概览",
-        "",
-        "### DeepLearing-Interview-Awesome-2024",
+        "## 数据分布",
         "",
     ]
-    for title, count in repo1_pages:
-        lines.append(f"- {title} | {count} 道题")
-    lines.extend(["", "### LLMs_interview_notes", ""])
-    for title, count in repo2_pages:
-        lines.append(f"- {title} | {count} 道题")
+    for source_name, count in source_counter.items():
+        lines.append(f"- 来源：{source_name} | {count} 道原始题")
+    lines.append("")
+    for platform, count in platform_counter.items():
+        lines.append(f"- 平台：{platform} | {count} 道原始题")
+    lines.extend(["", "## 真实面经抓取状态", ""])
+    if external_results:
+        for result in external_results:
+            lines.append(
+                f"- {result.platform} / {result.company} / {result.title} | {result.status} | "
+                f"{result.question_count} 题 | {result.message}"
+            )
+    else:
+        lines.append("- 当前未配置外部 URL 来源。")
+    lines.extend(["", "## 网页产物", ""])
+    for title, count in source_page_meta:
+        lines.append(f"- 来源页：{title} | {count} 道题")
+    lines.extend(["", "## 融合题库页", ""])
+    for title, count in merged_page_meta:
+        lines.append(f"- 模块页：{title} | {count} 道题")
     return "\n".join(lines)
 
 
@@ -564,7 +1111,6 @@ def main() -> None:
         repo_name: ensure_repo_cloned(base_dir, repo_name, repo_url)
         for repo_name, repo_url in REPO_SPECS
     }
-
     repo1_root = repo_paths["DeepLearing-Interview-Awesome-2024"]
     repo2_root = repo_paths["LLMs_interview_notes"]
 
@@ -572,47 +1118,74 @@ def main() -> None:
     local_qas = parse_local_reports_qas(base_dir)
     answer_bank = repo1_qas + local_qas
 
-    output_dir = base_dir / "reports" / "专题题库" / "GitHub面经仓"
+    repo1_raw = parse_repo1_raw_questions(repo1_qas)
+    repo2_sections = parse_repo2_sections(repo2_root)
+    repo2_raw = parse_repo2_raw_questions(repo2_sections, answer_bank)
+    print(f"[*] GitHub 仓1抽取 {len(repo1_raw)} 道题，仓2抽取 {len(repo2_raw)} 道题")
+
+    external_specs = load_external_sources(base_dir / "interview_source_urls.yaml")
+    external_raw, external_results = fetch_external_sources(external_specs)
+    print(f"[*] 外部真实面经抽取 {len(external_raw)} 道题，来源条目 {len(external_results)} 个")
+
+    all_raw_questions = repo1_raw + repo2_raw + external_raw
+    aggregates = merge_questions(all_raw_questions, answer_bank)
+    print(f"[*] 合并前 {len(all_raw_questions)} 道题，去重后 {len(aggregates)} 道题")
+    aggregate_map = {aggregate.key: aggregate for aggregate in aggregates}
+
+    cache_path = base_dir / "archive" / "interview_cards" / "qa_cards_cache.json"
+    cache = load_card_cache(cache_path)
+    card_map = enrich_question_cards(aggregates, cache, client, model_name)
+    save_card_cache(cache_path, cache)
+
+    output_dir = base_dir / "reports" / "专题题库" / "全自动面经资料卡"
     date_prefix = datetime.now().strftime("%Y%m%d")
 
-    repo1_page_meta: list[tuple[str, int]] = []
-    for module_title, relative_path in DEEPLEARNING_MODULES:
-        source_qas = [item for item in repo1_qas if relative_path.replace("\\", "/") in item.source_label]
-        if not source_qas:
-            continue
+    page_groups = build_page_groups(all_raw_questions, aggregate_map)
+    source_page_meta: list[tuple[str, int]] = []
+    for (source_name, page_group), sections in sorted(page_groups.items(), key=lambda item: item[0]):
+        grouped_questions = [(section_title, questions) for section_title, questions in sections.items()]
+        flat_count = sum(len(questions) for _, questions in grouped_questions)
+        intro_lines = [
+            f"> 来源分组：{source_name}",
+            f"> 本页题目数：{flat_count}",
+            "> 每题均包含基础知识补充、详细解答和案例模拟。",
+        ]
+        page_title = f"{source_name}：{page_group}"
+        output_path = output_dir / f"{date_prefix}_{safe_name(page_title)}.md"
+        write_text(output_path, render_source_page(page_title, intro_lines, grouped_questions, card_map))
+        source_page_meta.append((page_title, flat_count))
 
-        missing_questions = [item.question for item in source_qas if not item.answer.strip()]
-        generated_answers: dict[str, str] = {}
-        for batch in chunk_list(missing_questions, 4):
-            generated_answers.update(
-                generate_answers_with_llm(client, model_name, "DeepLearing-Interview-Awesome-2024", module_title, batch)
-            )
+    merged_page_meta: list[tuple[str, int]] = []
+    by_tag: dict[str, list[QuestionAggregate]] = defaultdict(list)
+    for aggregate in aggregates:
+        by_tag[aggregate.primary_tag].append(aggregate)
+    for tag, items in sorted(by_tag.items(), key=lambda pair: (-len(pair[1]), pair[0])):
+        ordered_items = sorted(items, key=lambda item: (-len(item.sources), item.question))
+        page_title = f"融合题库：{tag}"
+        intro_lines = [
+            "> 已经把 GitHub 题库和真实面经合并去重。",
+            f"> 本页共 {len(ordered_items)} 道题，按同题合并后的题卡展示。",
+        ]
+        output_path = output_dir / f"{date_prefix}_{safe_name(page_title)}.md"
+        write_text(
+            output_path,
+            render_source_page(page_title, intro_lines, [("", ordered_items)], card_map),
+        )
+        merged_page_meta.append((page_title, len(ordered_items)))
 
-        final_qas: list[QAItem] = []
-        for item in source_qas:
-            answer = item.answer.strip()
-            if not answer:
-                answer = generated_answers.get(item.question, "未生成解析。")
-            final_qas.append(QAItem(item.question, answer, item.source_label, item.source_url))
+    overview_path = output_dir / f"{date_prefix}_全自动面经资料卡总览.md"
+    write_text(
+        overview_path,
+        render_overview(
+            all_raw_questions,
+            aggregates,
+            external_results,
+            source_page_meta,
+            merged_page_meta,
+        ),
+    )
 
-        output_path = output_dir / f"{date_prefix}_{safe_name(module_title)}.md"
-        source_url = f"https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/{relative_path.replace(os.sep, '/')}"
-        write_text(output_path, render_repo1_page(module_title, final_qas, source_url))
-        repo1_page_meta.append((module_title, len(final_qas)))
-
-    repo2_sections = parse_repo2_sections(repo2_root)
-    repo2_pages = build_repo2_answer_pages(repo2_sections, answer_bank, client, model_name)
-    repo2_page_meta: list[tuple[str, int]] = []
-    for major_group, page_content in repo2_pages:
-        question_count = sum(section.questions.__len__() for section in repo2_sections if section.major_group == major_group)
-        output_path = output_dir / f"{date_prefix}_{safe_name('LLMs_interview_notes_' + major_group)}.md"
-        write_text(output_path, page_content)
-        repo2_page_meta.append((major_group, question_count))
-
-    overview_path = output_dir / f"{date_prefix}_GitHub面经仓库提取总览.md"
-    write_text(overview_path, render_overview(repo1_page_meta, repo2_page_meta))
-
-    print(f"[√] 已完成两个 GitHub 仓库的提取与汇总，输出目录：{output_dir}")
+    print(f"[√] 已生成全自动面经资料卡，输出目录：{output_dir}")
 
 
 if __name__ == "__main__":

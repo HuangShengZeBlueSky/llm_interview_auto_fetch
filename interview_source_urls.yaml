@@ -1,0 +1,31 @@
+sources:
+  - platform: nowcoder
+    company: 阿里巴巴
+    title: 阿里大模型二面
+    module: 真实面经
+    url: https://www.nowcoder.com/feed/main/detail/37c33cc8ee9041ad91a35dc42f4ca239
+
+  - platform: nowcoder
+    company: 腾讯
+    title: 腾讯大模型算法一面
+    module: 真实面经
+    url: https://www.nowcoder.com/feed/main/detail/816b4b5d959f4df3ad6664e78b6593ee
+
+  - platform: nowcoder
+    company: 阿里巴巴
+    title: 阿里系大模型常见问题汇总
+    module: 真实面经
+    url: https://www.nowcoder.com/discuss/848942791164981248
+
+  - platform: zhihu
+    company: 字节跳动
+    title: 知乎公开面经示例
+    module: 真实面经
+    url: https://zhuanlan.zhihu.com/p/1977429611001439798
+
+# 小红书已接入同一条导入脚本，当前只需要补真实 note URL 即可：
+# - platform: xiaohongshu
+#   company: 字节跳动
+#   title: 小红书面经示例
+#   module: 真实面经
+#   url: https://www.xiaohongshu.com/explore/<note_id>
