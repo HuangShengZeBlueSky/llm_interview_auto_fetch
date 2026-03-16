@@ -340,7 +340,10 @@ def ensure_repo_cloned(base_dir: Path, repo_name: str, repo_url: str) -> Path:
     repo_root = base_dir / "external" / repo_name
     repo_root.parent.mkdir(parents=True, exist_ok=True)
     if repo_root.exists():
-        run_git_command(["git", "-C", str(repo_root), "pull", "--ff-only"])
+        try:
+            run_git_command(["git", "-C", str(repo_root), "pull", "--ff-only"])
+        except subprocess.CalledProcessError:
+            pass
     else:
         run_git_command(["git", "clone", "--depth", "1", repo_url, str(repo_root)])
     return repo_root
@@ -651,19 +654,40 @@ def load_external_sources(config_path: Path) -> list[dict]:
 
 
 def extract_questions_from_article_text(text: str) -> list[str]:
+    quoted_questions = re.findall(r"[“\"]([^”\"]+[？?])", text)
+    questions = [clean_markdown_text(item) for item in quoted_questions if clean_markdown_text(item)]
+
+    skip_fragments = (
+        "获取更多面经",
+        "点击查看答案",
+        "深度解析",
+        "考察逻辑",
+        "核心洞察",
+        "数据表明",
+        "显著增加",
+        "通常从",
+        "这里的深层洞察",
+        "公式为",
+        "复数域的旋转诠释",
+    )
     lines = [clean_markdown_text(line) for line in text.splitlines()]
-    questions: list[str] = []
     for line in lines:
-        if not line or "获取更多面经" in line or "点击查看答案" in line:
+        if not line or any(fragment in line for fragment in skip_fragments):
             continue
         matched = QUESTION_LINE_RE.match(line)
         candidate = matched.group(1).strip() if matched else line.strip()
         candidate = re.sub(r"^[\(（[]?\d+[\)）\].、:：-]?\s*", "", candidate)
-        if len(candidate) < 3:
+        if len(candidate) < 4 or len(candidate) > 80:
             continue
         if candidate in {"前言", "背景", "总结", "反问", "论文拷打"}:
             continue
-        if is_question_like(candidate) or len(candidate) <= 40:
+        if candidate.endswith("次"):
+            continue
+        if "。" in candidate and "？" not in candidate and "?" not in candidate:
+            continue
+        if "：" in candidate and not is_question_like(candidate):
+            continue
+        if is_question_like(candidate):
             questions.append(candidate)
     return list(dict.fromkeys(questions))
 
@@ -817,6 +841,44 @@ def build_generation_signature(aggregate: QuestionAggregate) -> str:
     return md5(f"{normalize_text(aggregate.question)}|{seed_fragment}|{aggregate.primary_tag}".encode("utf-8")).hexdigest()
 
 
+def heuristic_basics(tag: str) -> list[str]:
+    presets = {
+        "LLM基础": ["先定义模型范式", "说明训练目标", "补结构与能力边界"],
+        "Transformer结构": ["先讲模块组成", "再讲计算路径", "补复杂度与取舍"],
+        "模型微调": ["说明微调目标", "比较参数效率方案", "补数据与显存约束"],
+        "推理优化与部署": ["先讲性能瓶颈", "再讲优化手段", "补精度与成本权衡"],
+        "训练并行与系统": ["先讲资源瓶颈", "再讲并行策略", "补通信与稳定性"],
+        "RAG与向量检索": ["先讲检索链路", "再讲召回与重排", "补效果评测方式"],
+        "Agent与工具调用": ["先讲规划与调用", "再讲状态维护", "补异常处理策略"],
+        "后训练与对齐": ["先讲偏好目标", "再讲损失差异", "补稳定性与副作用"],
+        "多模态与视觉语言": ["先讲模态对齐", "再讲编码器设计", "补训练与推理成本"],
+        "生成模型与扩散": ["先讲噪声过程", "再讲网络结构", "补采样效率与质量"],
+        "经典算法与编程": ["先讲时间复杂度", "再讲边界条件", "补工程实现细节"],
+    }
+    return presets.get(tag, ["先定义核心概念", "再解释关键机制", "最后补工程取舍"])
+
+
+def build_seed_card(aggregate: QuestionAggregate) -> QuestionCard:
+    detailed = clean_markdown_text(strip_html(aggregate.seed_answer or ""))
+    if len(detailed) > 900:
+        detailed = trim_text(detailed, 900)
+    if len(detailed) < 120:
+        detailed = (
+            f"{detailed} 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。"
+        ).strip()
+    case_simulation = (
+        f"面试表达可以这样组织：先用一句话回答“{aggregate.question}”的核心结论，"
+        f"再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，"
+        "就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。"
+    )
+    return QuestionCard(
+        basics=heuristic_basics(aggregate.primary_tag),
+        detailed_answer=detailed,
+        case_simulation=case_simulation,
+        generated_from="seed",
+    )
+
+
 def generate_cards_batch(
     client: OpenAI | None,
     model_name: str,
@@ -919,9 +981,11 @@ def enrich_question_cards(
     cache: dict[str, dict],
     client: OpenAI | None,
     model_name: str,
+    cache_path: Path | None = None,
 ) -> dict[str, QuestionCard]:
     card_map: dict[str, QuestionCard] = {}
     pending: list[QuestionAggregate] = []
+    batch_size = 20
 
     for aggregate in aggregates:
         signature = build_generation_signature(aggregate)
@@ -933,11 +997,22 @@ def enrich_question_cards(
                 case_simulation=cached["case_simulation"],
                 generated_from=cached.get("generated_from", "cache"),
             )
+        elif aggregate.seed_answer.strip():
+            card = build_seed_card(aggregate)
+            card_map[aggregate.key] = card
+            cache[aggregate.key] = {
+                "question": aggregate.question,
+                "signature": signature,
+                "basics": card.basics,
+                "detailed_answer": card.detailed_answer,
+                "case_simulation": card.case_simulation,
+                "generated_from": card.generated_from,
+            }
         else:
             pending.append(aggregate)
 
-    total_batches = len(chunk_list(pending, 8))
-    for batch_index, batch in enumerate(chunk_list(pending, 8), start=1):
+    total_batches = len(chunk_list(pending, batch_size))
+    for batch_index, batch in enumerate(chunk_list(pending, batch_size), start=1):
         print(f"[*] 生成题卡批次 {batch_index}/{total_batches}，本批 {len(batch)} 题")
         generated_cards = generate_cards_batch(client, model_name, batch)
         for aggregate in batch:
@@ -951,6 +1026,8 @@ def enrich_question_cards(
                 "case_simulation": card.case_simulation,
                 "generated_from": card.generated_from,
             }
+        if cache_path is not None:
+            save_card_cache(cache_path, cache)
 
     return card_map
 
@@ -1134,7 +1211,7 @@ def main() -> None:
 
     cache_path = base_dir / "archive" / "interview_cards" / "qa_cards_cache.json"
     cache = load_card_cache(cache_path)
-    card_map = enrich_question_cards(aggregates, cache, client, model_name)
+    card_map = enrich_question_cards(aggregates, cache, client, model_name, cache_path)
     save_card_cache(cache_path, cache)
 
     output_dir = base_dir / "reports" / "专题题库" / "全自动面经资料卡"

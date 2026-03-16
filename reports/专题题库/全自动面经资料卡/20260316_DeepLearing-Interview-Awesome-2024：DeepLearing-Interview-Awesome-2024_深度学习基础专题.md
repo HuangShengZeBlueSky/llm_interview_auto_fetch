@@ -1,0 +1,1036 @@
+# DeepLearing-Interview-Awesome-2024：DeepLearing-Interview-Awesome-2024_深度学习基础专题
+
+> 来源分组：DeepLearing-Interview-Awesome-2024
+> 本页题目数：49
+> 每题均包含基础知识补充、详细解答和案例模拟。
+
+## 原仓库题解
+
+### 1. 卷积和BN如何融合提升推理速度
+
+- 主标签：推理优化与部署
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲性能瓶颈
+- 再讲优化手段
+- 补精度与成本权衡
+
+### 详细解答
+
+- Conv和BN的融合：在网络的推理阶段，可以将BN层的运算融合到Conv层中，减少运算量，加速推理。本质上是修改了卷积核的参数，在不增加Conv层计算量的同时，略去了BN层的计算量。 !Alt python def fuse_conv_bn(conv, bn): std = (bn.running_var + bn.eps).sqrt() bias = bn.bias - bn.running_mean * bn.weight / std t = (bn.weight / std).reshape(-1, 1, 1, 1) weights = conv.weight * t conv = nn.Conv2d(3，128，3) conv.weight = torch.nn.Parameter(weights) conv.bias = torch.nn.Parameter(bias) return conv
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“卷积和BN如何融合提升推理速度”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 2. 多卡BN如何处理（Synchronize BN）
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- 首先解释下为什么需要同步 BN 操作，在多卡训练时，针对某些 BS 较小的任务（比如实例分割）每张卡计算得到的统计量可能与整体数据样本具有较大差异。换言之，针对具有大 BS 的分类任务，在训练阶段就无需使用多卡同步BN。 - 然后回答下多卡 BN 的要同步哪些东西，回想下多卡BN里面需要计算的参数均值和方差，多卡同步就是同步每张卡上对应的 BN 层分别计算出相应的统计量。 - 再来回答下多卡同步，跨卡同步BN的关键是在前向运算的时候拿到全局的均值和方差，在后向运算时候得到相应的全局梯度。最简单的实现方法是先同步求均值，再发回各卡然后同步求方差，但是这样就同步了两次。 !Alt 详细参考：https://zhuanlan.zhihu.com/p/40496177
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“多卡BN如何处理（Synchronize BN）”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 3. TensorRT为什么能让模型跑更快
+
+- 主标签：推理优化与部署
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲性能瓶颈
+- 再讲优化手段
+- 补精度与成本权衡
+
+### 详细解答
+
+- 首先，TRT实现对于网络结构的垂直整合，即将目前主流神经网络的Conv、BN、Relu三个层融合为了一个层，所谓CBR - 然后，TRT可以对网络结构做水平组合，水平组合是指将输入为相同张量和执行相同操作的层融合一起，比如将三个相连的1×1的CBR为一个大的1×1的CBR。 - 最后，对于concat层，将contact层的输入直接送入下面的操作中，不用单独进行concat后在输入计算，相当于减少了一次传输吞吐。 详细参考：https://zhuanlan.zhihu.com/p/64933639
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“TensorRT为什么能让模型跑更快”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 4. 损失函数的应用-合页损失
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+SVM分类器 - SVM是为了找到具有最大间隔的超平面，损失函数被称为 hinge loss，用于最大间隔分类，公式为 l = max（0 ，1 - z）， 其中 z 为 y（wx+b）， hinge loss 保证了所有普通样本（非支持向量的样本损失为0）不参与决定最终的超平面，减少了对训练样本的依赖程度，这就是为啥svm训练效率这么高。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“损失函数的应用-合页损失”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 5. Pytorch DataLoader的主要参数有哪些
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- 其中最重要的参数dataset，代表传入的数据集，数据集需要包含__init__, __len__, __getitem__ 三个方法 详细参考：https://www.zdaiot.com/MLFrameworks/Pytorch/Pytorch%20DataLoader%E8%AF%A6%E8%A7%A3/
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“Pytorch DataLoader的主要参数有哪些”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 6. 神经网络引入注意力机制后效果降低的原因
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+第一个角度是模型的欠拟合与过拟合；大部分注意力模块是有参数的，添加注意力模块会导致模型的复杂度增加。如果添加attention前模型处于欠拟合状态，那么增加参数是有利于模型学习的，性能会提高。 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“神经网络引入注意力机制后效果降低的原因”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 7. 为什么交叉熵可以作为损失函数
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+我们希望模型学到的分布和训练数据的分布相同，即希望最小化KL散度(一般用于计算两个分布之间的不同，KL散度=交叉熵-熵)，而当训练数据分布是固定的时候，最小化KL散度等价于最小化交叉熵。 从另外一个角度上来理解，如果使用传统的平方误差损失的话，得到的代价函数不是一个凸函数，会有很多的局部最优点；而交叉熵函数会得到一个相对更加平滑的代价曲线。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“为什么交叉熵可以作为损失函数”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 8. 优化算法之异同 SGD/AdaGrad/Adam
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- 参考链接：https://zhuanlan.zhihu.com/p/32230623 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“优化算法之异同 SGD/AdaGrad/Adam”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 9. 有哪些权重初始化的方法
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- Xavier 只能针对类似 sigmoid 和 tanh 之类的饱和激活函数，而无法应用于 ReLU 之类的非饱和激活函数。a = np.sqrt(3/self.neurals) - KaimingInit 将 weight 以 Kaiming 的方式初始化，将 bias 初始化成指定常量，通常用于初始化卷积，Kaiming初始化建议初始化每层权值为一个均值为0标准差为2 n l \sqrt{\frac{2}{n_l}} n 的高斯分布，并且偏差为0。 - 参考链接：https://zhuanlan.zhihu.com/p/148034113 - 初始化权值可能会对训练过程有什么影响？为什么初始化权值要以方差作为衡量条件？ 我认为网络学习的是训练数据的空间分布，即训练收敛时，整个输出空间应该是输入空间分布的某种稳定投影。从层的角度来看，假如2层网络：A->B，B希望获得稳定输出，但由于每次学习更新导致A也在变化，所以B想稳定就比较难。怎么办，保证A和B的分布一样，这样学习就简单一点，即可以理解成信息流通更流畅。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“有哪些权重初始化的方法”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 10. MMengine的一些特性
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- 可以通过指定 init_cfg=dict(type='Pretrained', checkpoint='path/to/ckpt') 来加载预训练权重 - 对不同层进行初始化 python 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“MMengine的一些特性”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 11. 对卷积做 Kaiming 初始化，线性层做 Xavier 初始化
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+toy_net = ToyNet( init_cfg=[ dict(type='Kaiming', layer='Conv2d'), dict(type='Xavier', layer='Linear') ], ) toy_net.init_weights()
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“对卷积做 Kaiming 初始化，线性层做 Xavier 初始化”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 12. Modules的一些属性问题
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+python def children(self): 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“Modules的一些属性问题”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 13. model.children():每一次迭代返回的每一个元素实际上是 Sequential 类型,而Sequential类型又可以使用下标index索引来获取每一个Sequenrial 里面的具体层，比如conv层、dense层等；
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+def named_children(self): 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“model.children():每一次迭代返回的每一个元素实际上是 Sequential 类型,而Sequential类型又可以使用下标index索引来获取每一个Sequenrial 里面的具体层，比如conv层、dense层等；”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 14. 每一次迭代返回的每一个元素实际上是 一个元组类型，元组的第一个元素是名称，第二个元素就是对应的层或者是Sequential。
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+def modules(self): 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“每一次迭代返回的每一个元素实际上是 一个元组类型，元组的第一个元素是名称，第二个元素就是对应的层或者是Sequential。”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 15. 将整个模型的所有构成（包括包装层、单独的层、自定义层等）由浅入深依次遍历出来，只不过modules()返回的每一个元素是直接返回的层对象本身，
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+def named_modules(self, memo=None, prefix=''): 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“将整个模型的所有构成（包括包装层、单独的层、自定义层等）由浅入深依次遍历出来，只不过modules()返回的每一个元素是直接返回的层对象本身，”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 16. named_modules()返回的每一个元素是一个元组，第一个元素是名称，第二个元素才是层对象本身。
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+>>> net = torch.nn.Linear(2, 2) >>> net.state_dict() OrderedDict([('weight', tensor([[-0.3558, 0.2153], [-0.2785, 0.6982]])), ('bias', tensor([ 0.5771, -0.6232]))]) >>> net.state_dict().keys() odict_keys(['weight', 'bias'])
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“named_modules()返回的每一个元素是一个元组，第一个元素是名称，第二个元素才是层对象本身。”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 17. 函数state_dict的作用是返回一个包含module的所有state的dictionary，而这个字典的Keys对应的就是parameter和buffer的名字names
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：近似题匹配：DeepLearing-Interview-Awesome-2024_深度学习基础专题:DeepLearning/Reference.md
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- state_dict是PyTorch中保存和加载模型状态的核心机制。
+- 包含模型的可学习参数（Parameter）和持久化缓冲（Buffer）。
+- 字典的Key为网络层级的字符串路径，Value为对应的张量。
+
+### 详细解答
+
+结论：state_dict 是一个有序字典（OrderedDict），用于将模型中所有的可学习参数（如权重和偏置）以及非学习但需持久化的状态（如BN层的均值和方差）映射为张量。 原理：在PyTorch中，nn.Module 及其子类通过 state_dict() 方法暴露其内部状态。其中，Parameter 是需要梯度更新的变量（如卷积核权重）；Buffer 则是无需梯度更新但属于模型状态的一部分（如BatchNorm中的 running_mean 和 running_var）。state_dict 的 Key 是由模块的层级结构自动生成的字符串（如 layer1.0.conv1.weight）。 工程权衡：使用 state_dict 保存模型比直接保存整个模型对象更轻量且安全，因为它只保存数据张量，不依赖具体的代码结构。在加载时，即使代码有微调，只要设置 strict=False 也能灵活加载部分权重。
+
+### 案例模拟
+
+面试官追问：如果我只想加载预训练模型的部分权重，应该怎么做？ 回答：在加载预训练模型时，可以先获取当前模型的 state_dict 和预训练的 state_dict。然后遍历预训练字典，过滤掉形状不匹配或名称不在当前模型中的键值对（例如分类头被修改的情况）。最后，使用 model.load_state_dict(filtered_dict, strict=False) 进行加载。这种方法在迁移学习和微调任务中非常常见，能有效避免加载报错。
+
+### 18. 函数load_state_dict的作用和上边介绍的state_dict的作用刚好相反，是将parameter和buffer加载到Module及其SubModule中去。
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+def parameters(self, recurse=True): for name, param in self.named_parameters(recurse=recurse): yield param 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“函数load_state_dict的作用和上边介绍的state_dict的作用刚好相反，是将parameter和buffer加载到Module及其SubModule中去。”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 19. 来遍历网络模型中的参数
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- 参考链接：https://zhuanlan.zhihu.com/p/156127643 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“来遍历网络模型中的参数”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 20. 大模型训练一般都采用torch2.0以上版本，其中torch.compile可加速训练，介绍下如何使用以及其是否对普通的python代码起作用？
+
+- 主标签：训练并行与系统
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲资源瓶颈
+- 再讲并行策略
+- 补通信与稳定性
+
+### 详细解答
+
+- 参考链接：https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html# 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“大模型训练一般都采用torch2.0以上版本，其中torch.compile可加速训练，介绍下如何使用以及其是否对普通的python代码起作用？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 21. 激活函数的对比与优缺点
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- Sigmoid函数饱和使梯度消失。当神经元的激活在接近0或1处时会饱和，在这些区域梯度几乎为0，这就会导致梯度消失，几乎就有没有信号通过神经传回上一层。 - Tanh解决了Sigmoid的输出是不是零中心的问题，但仍然存在饱和问题。为了防止饱和，现在主流的做法会在激活函数前多做一步batch normalization，尽可能保证每一层网络的输入具有均值较小的、零中心的分布。 - ReLU对于随机梯度下降的收敛有巨大的加速作用；sigmoid和tanh在求导时含有指数运算，而ReLU求导几乎不存在任何计算量。单侧抑制，相对宽阔的激活边界； - Softsign函数表达式：f=min(max(0,x),6),特点：ReLU6 就是普通的 ReLU 但是限制最大输出值为6（对输出值做clip），这是为了在移动端设备float16的低精度的时候，也能有很好的数值分辨率，如果对 ReLU 的激活范围不加限制，输出范围为 0 到正无穷，如果激活值非常大，分布在一个很大的范围内，则低精度的float16无法很好地精确描述如此大范围的数值，带来精度损失。 - SoftPlus 可以作为 ReLu 的一个不错的替代选择，可以看到与 ReLU 不同的是，SoftPlus 的导数是连续的、非零的、无处不在的，这一特性可以防止出现 ReLU 中的 “神经元死亡” 现象。 - 参考链接：http://giantpandacv.com/academic/%E7%AE%97%E6%B3%95%E7%A7%91%E6%99%AE/%E7%BB%BC%E8%BF%B0%E7%B1%BB/%E7%9B%98%E7%82%B9%E5%BD%93%E5%89%8D%E6%9C%80%E6%B5%81%E8%A1%8C%E7%9A%84%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0%E5%8F%8A%E9%80%89%E6%8B%A9%E7%BB%8F%E9%AA%8C/
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“激活函数的对比与优缺点”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 22. PyTorch 中 nn.Linear()和nn.Embedding()有什么区别？
+
+- 主标签：RAG与向量检索
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲检索链路
+- 再讲召回与重排
+- 补效果评测方式
+
+### 详细解答
+
+nn.Linear的输入为一个向量，输出也为一个向量，向量的各个维的元素取值范围是连续的。而nn.Embedding的输入只能为离散值，只输入一个离散值也能获取结果，而这个离散值实际上相当于取one-hot之后的向量。 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“PyTorch 中 nn.Linear()和nn.Embedding()有什么区别？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 23. Transformer/CNN/RNN的时间复杂度对比
+
+- 主标签：Transformer结构
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲模块组成
+- 再讲计算路径
+- 补复杂度与取舍
+
+### 详细解答
+
+- https://zhuanlan.zhihu.com/p/264749298 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“Transformer/CNN/RNN的时间复杂度对比”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 24. 比较CNN和多层感知机MLP
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- MLP由全连接层构成，每个神经元都和上一层中的所有节点连接，存在参数冗余；相比之下，CNN由于权重共享，参数更少，方便网络的训练与设计深层网络； - MLP只接受向量输入，会丢失像素间的空间信息；CNN接受矩阵和向量输入，能利用像素间的空间关系 - MLP是CNN的一个特例，当CNN卷积核大小与输入大小相同时其计算过程等价于MLP
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“比较CNN和多层感知机MLP”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 25. MMCV中Hook机制简介及创建一个新的Hook
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- Runner是一个模型训练的工厂，HOOK可以理解为一种触发器，也可以理解为一种训练框架的架构规范，它规定了在算法训练过程中的种种操作，并且我们可以通过继承HOOK类，然后注册HOOK自定义我们想要的操作。 - MMCV在./mmcv/runner/hooks/hook.py中定义了Hook的基类以及Hook的注册器HOOKS。作为基类，Hook本身没有实现具体的函数，只是提供了before_run、after_run等6个接口函数，其他所有的Hooks都通过继承Hook类并重写相应的函数完整指定功能。 - Hook 的主要目的是扩展功能，而不是修改已经实现的功能。如果我们实现一个定制化的 Hook，使用时需要定义、注册、调用3个步骤。自定义Hook在./mmcv/runner/hooks目录下构建，在执行runner.run()前会调用BaseRunner类中的register_training_hooks方法进行注册，使用build_from_cfg进行实例获取，然后调用BaseRunner类的register_hook()进行注册，这样所有Hook实例就都被纳入到runner中的一个list中。在runner执行过程中，会在特定的程序位点通过call_hook()函数调用相应的Hook。 python import torch from mmcv.runner.hooks import HOOKS, Hook @HOOKS.register_module() class CheckInvalidLossHook(Hook): def __init__(self, interval=50): self.interval = interval def after_train_iter(self, runner): if self.every_n_iters(runner, self.interval): assert torch.isfinite(runner.outputs['loss']), \ runner.logger.info('loss become…
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“MMCV中Hook机制简介及创建一个新的Hook”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 26. 深度学习训练中如何区分错误样本和难例样本
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- 一种方式是通过损失处理，论文标题：Unsupervised Label Noise Modeling and Loss Correction，可以使用一个Beta分布来刻画正常样本和噪音样本，从而将二者区分。 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“深度学习训练中如何区分错误样本和难例样本”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 27. PyTorch 节省显存的常用策略
+
+- 主标签：训练并行与系统
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲资源瓶颈
+- 再讲并行策略
+- 补通信与稳定性
+
+### 详细解答
+
+- 混合精度训练 - 大 batch 训练或者称为梯度累加：具体实现是在 loss = loss / cumulative_iters - gradient checkpointing 梯度检查点 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“PyTorch 节省显存的常用策略”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 28. 深度学习模型训练时的Warmup预热学习率作用
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+Warmup是在ResNet论文中提到的一种学习率预热的方法，它在训练开始的时候先选择使用一个较小的学习率，训练了一些epoches或者steps(比如4个epoches,10000steps)，再修改为预先设置的学习来进行训练。 由于刚开始训练时，模型的权重(weights)是随机初始化的，此时若选择一个较大的学习率，可能带来模型的不稳定(振荡)，选择Warmup预热学习率的方式，可以使得开始训练的几个epoches或者一些steps内学习率较小，在预热的小学习率下，模型可以慢慢趋于稳定，等模型相对稳定后再选择预先设置的学习率进行训练，使得模型收敛速度变得更快，模型效果更佳。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“深度学习模型训练时的Warmup预热学习率作用”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 29. PyTorch中的 ModuleList 和 Sequential的区别和使用场景
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+ModuleList 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“PyTorch中的 ModuleList 和 Sequential的区别和使用场景”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 30. 考虑一个过滤器[-1 -1 -1; 0 0 0; 1 1 1] 用于卷积。该滤波器将从输入图像中提取哪些边缘？
+
+- 主标签：多模态与视觉语言
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲模态对齐
+- 再讲编码器设计
+- 补训练与推理成本
+
+### 详细解答
+
+该过滤器将从图像中提取水平边缘。为了获得更具体的理解，请考虑由具有以下像素强度的数组表示的灰度图像： [0 0 0 0 0 0; 0 0 0 0 0 0; 0 0 0 0 0 0; 10 10 10 10 10 10； 10 10 10 10 10 10；] 从阵列中可以明显看出，图像的上半部分是黑色的，而下半部分是较浅的颜色，在图像中心形成明显的边缘。 两者的卷积将得到数组 [0 0 0 0; 30 30 30 30；30 30 30 30；0 0 0 0;]。从结果数组中的值可以看出，水平边缘已被识别。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“考虑一个过滤器[-1 -1 -1; 0 0 0; 1 1 1] 用于卷积。该滤波器将从输入图像中提取哪些边缘？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 31. 深度学习中为什么不对 bias 偏置进行正则化？
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+因为它对输入参数不敏感 公式上看就是它对所有的输入一视同仁，不贡献模型的曲率，求导的时候 bias 没多大作用 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“深度学习中为什么不对 bias 偏置进行正则化？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 32. 深度学习模型中如何融入传统图像处理的特征？直接拼接融合有什么问题？
+
+- 主标签：多模态与视觉语言
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲模态对齐
+- 再讲编码器设计
+- 补训练与推理成本
+
+### 详细解答
+
+特征融合的一大难点在于不同的特征来自不同domain，直接物理拼接可能没有意义。比如常见的前融合或者后融合，以后融合举例，在卷积层铺平后的向量与传统视觉特征向量拼接，然后再接到全连接网络，可能效果不理想。 一种思路是采用discrimination correlation analysis方法进行融合，具体的：利用训练好的网络，从训练图像中提取特征向量;同时利用sift或者其他特征提取方式从训练图像中提取特征向量。然后对两组向量做dca分析，采用向量拼接的方式连接两组向量，训练分类器。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“深度学习模型中如何融入传统图像处理的特征？直接拼接融合有什么问题？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 33. 多任务学习中各个任务损失的权重应该如何设计呢？
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+多任务学习损失 多任务学习学习率 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“多任务学习中各个任务损失的权重应该如何设计呢？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 34. 为什么Adam常常打不过SGD？症结点与改善方案？
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+Adam拥有收敛速度快、调参容易的优点，却也存在时常被人攻击的泛化性与收敛问题。讨论模型泛化能力时，我们会希望模型找到的minimum是一个比较平缓 (flat) 、而非陡峭 (sharp) 的位置。不过相当多的论文指出或讨论了Adam在testing时error较大的事实。 !Alt 为什么Adam常常打不过SGD
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“为什么Adam常常打不过SGD？症结点与改善方案？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 35. 优化问题：神经网络权重为什么不能初始化为0，而逻辑回归参数可以初始化为0？
+
+- 主标签：传统机器学习
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+梯度下降算法无法工作 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“优化问题：神经网络权重为什么不能初始化为0，而逻辑回归参数可以初始化为0？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 36. 如何处理不平衡的数据集？
+
+- 主标签：数据工程与评测
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+有多种方法可以处理不平衡的数据集，例如使用不同的算法、对类别进行加权或对少数类别进行过采样。 算法选择：某些算法比其他算法更适合处理不平衡数据。例如，决策树和随机森林往往在不平衡数据上表现良好，而逻辑回归或支持向量机等算法可能会很困难。 类权重：通过为少数类分配更高的权重，可以使算法在训练过程中更加重视它。这有助于防止算法总是预测多数类。 过采样：您可以通过随机复制现有样本或基于现有样本生成新样本来创建少数类的合成样本。这可以平衡类别分布并帮助算法更多地了解少数类别。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“如何处理不平衡的数据集？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 37. Pytorch代码中如何尽量避免.to(device)的操作？
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+- 其中一种情况是初始化一个全0或全1的张量，比如模型的输出已经在cuda上了，你需要另外的tensor也是在cuda上，这时，你可以使用*_like操作符. 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“Pytorch代码中如何尽量避免.to(device)的操作？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 38. Pytorch中nn.Identity()/torch.chunk/torch.masked_select/torch.gather操作的应用场景？
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+python 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“Pytorch中nn.Identity()/torch.chunk/torch.masked_select/torch.gather操作的应用场景？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 39. 1:1的映射替换一些层
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+model = resnet50(pretrained=True) model.fc = nn.Identity() 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“1:1的映射替换一些层”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 40. 将输出分成N块
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+o1, o2, o3 = torch.chunk(one_layer(batch), 3, dim=1) 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“将输出分成N块”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 41. 计算损失只在满足某些条件的张量上
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+data = torch.rand((3, 3)).requires_grad_() mask = data > data.mean() torch.masked_select(data, mask) tensor([[0.0582, 0.7170, 0.7713], [0.9458, 0.2597, 0.6711], [0.2828, 0.2232, 0.1981]], requires_grad=True)
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“计算损失只在满足某些条件的张量上”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 42. 如何将大模型有效地切割成若干个子模型？如何将切割后的子模型分配到多个节点上进行并行训练？
+
+- 主标签：训练并行与系统
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲资源瓶颈
+- 再讲并行策略
+- 补通信与稳定性
+
+### 详细解答
+
+- 目前有很多的算法可以进行大型模型的切割。其中比较常用的方法包括"随机洗择切割点”、"图切割算法”和”局部洗择最优算法”等。这些算法的目的都是将大模型切割成尽可能平衡的若干个子模型，同时确保每个子模型都包含至少一部分的输入数据和特征，以确保每个子模型都能够顺利地进行训练。 - 目前已经有很多的分布式训练框架可以很好地支持大模型分布式训练。其中比较常用的分布式训练框架包括基于MPI的Horoygd、基于TensorFlow的TF.distribute、基于Pylorch的DDP和基于MXNet的Neuron等，这些框架够对切割后的子模型进行自动化地分配和管理，同时支持多节点之间的数据传输和通信，使得多节点分布式训练成为可能。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“如何将大模型有效地切割成若干个子模型？如何将切割后的子模型分配到多个节点上进行并行训练？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 43. Pytorch训练时经常会合并多个数据集，ConcatDataset具体做了什么？
+
+- 主标签：数据工程与评测
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+ConcatDataset继承自Dataset类, 构造函数要求一个列表L作为输入，其包含若干个数据集的, 重写了__len__方法和__getitem__方法。 https://zhuanlan.zhihu.com/p/222772996
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“Pytorch训练时经常会合并多个数据集，ConcatDataset具体做了什么？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 44. 常见问题：当Batch Size增大时，学习率该如何随之变化，具体该怎么变化？
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+当 Batch Size 增大时，每个 Batch 的梯度将会更准，所以步子就可以迈大一点，也就是增大学习率，以求更快达到终点，缩短训练时间，问题就是，增大多少才是最合适的呢？ 推导原理是让 SGD 增量的方差保持不变。即 Batch Size 扩大到 N 倍，则学习率扩大到 根号N 倍
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“常见问题：当Batch Size增大时，学习率该如何随之变化，具体该怎么变化？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 45. Pytorch Lighting的设计哲学，及你觉得好用的点
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+Pytorch-lightning 的核心设计哲学是将 深度学习项目中的 研究代码(定义模型) 和 工程代码 (训练模型) 相互分离。深度学习项目代码可以分成如下4部分： - 研究代码 (Research code)，用户继承LightningModule实现。 - 工程代码 (Engineering code)，用户无需关注通过调用Trainer实现。 - 非必要代码 （Non-essential research code，logging, etc...），用户通过调用Callbacks实现。 - 数据 (Data)，用户通过torch.utils.data.DataLoader实现，也可以封装成pl.LightningDataModule。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“Pytorch Lighting的设计哲学，及你觉得好用的点”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 46. 训练问题：多级多卡训练中的参数设置以2机8卡为例：分布式训练输出rank/local_rank/world_size分别是多少？
+
+- 主标签：训练并行与系统
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先讲资源瓶颈
+- 再讲并行策略
+- 补通信与稳定性
+
+### 详细解答
+
+以2机8卡为例：分布式训练输出rank/local_rank/world_size。rank序号为0-15，world_size为16，local_rank为0-7。 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“训练问题：多级多卡训练中的参数设置以2机8卡为例：分布式训练输出rank/local_rank/world_size分别是多少？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 47. PyTorch 中 Dataset 是用于表示数据集的基本类。获取一个batch数据的步骤？
+
+- 主标签：数据工程与评测
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+1，首先我们要确定数据集的长度n。 结果类似：n = 1000。 2，然后我们从0到n-1的范围中抽样出m个数(batch大小)。 假定m=4, 拿到的结果是一个列表，类似：indices = [1,4,8,9] 3，接着我们从数据集中去取这m个数对应下标的元素。 拿到的结果是一个元组列表，类似：samples = [(X[1],Y[1]),(X[4],Y[4]),(X[8],Y[8]),(X[9],Y[9])] 4，最后我们将结果整理成两个张量作为输出。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“PyTorch 中 Dataset 是用于表示数据集的基本类。获取一个batch数据的步骤？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 48. 训练问题：Pytorch训练的过程中内存一直增加的问题，如何解决？
+
+- 主标签：其他
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义核心概念
+- 再解释关键机制
+- 最后补工程取舍
+
+### 详细解答
+
+https://zhuanlan.zhihu.com/p/384298855, 代码中存在累加loss，但每步的loss没加item() 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“训练问题：Pytorch训练的过程中内存一直增加的问题，如何解决？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。
+
+### 49. 算子问题：大模型训练中bf16与fp16有什么区别？
+
+- 主标签：LLM基础
+- 来源条数：1
+- 答案生成方式：原仓库答案
+- 来源：[DeepLearing-Interview-Awesome-2024 / 原仓库题解 / 未知](https://github.com/315386775/DeepLearing-Interview-Awesome-2024/blob/main/DeepLearning/Reference.md)
+
+### 基础知识补充
+
+- 先定义模型范式
+- 说明训练目标
+- 补结构与能力边界
+
+### 详细解答
+
+FP16：精度高，范围小。容易溢出（NaN）和下溢（梯度变为0）。 BF16：精度低，范围大。不易溢出，更稳定，但会牺牲一些精度。 答题时还需要补充：这个问题涉及的核心模块、为什么这样设计、以及实际工程里可能遇到的性能、显存或数据质量约束。
+
+### 案例模拟
+
+面试表达可以这样组织：先用一句话回答“算子问题：大模型训练中bf16与fp16有什么区别？”的核心结论，再按“原理 -> 适用场景 -> 工程代价”的顺序展开。若面试官继续追问，就结合你做过的训练、推理、评测或排障经历，说一个具体案例来支撑判断。

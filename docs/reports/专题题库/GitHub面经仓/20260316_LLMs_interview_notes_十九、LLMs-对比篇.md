@@ -139,4 +139,3 @@
 5. 五、讲讲T5和Bart的区别，讲讲bart的DAE任务？
 6. 六、讲讲Bart和Bert的区别？
 7. 七、gpt3和gpt2的区别？
-

@@ -31,6 +31,9 @@ GROUP_PRIORITY = {
     "高分论文索引": -20,
 }
 
+RAW_HTML_TAG_RE = re.compile(r"</?[A-Za-z][^>\n]*>")
+LOCAL_IMAGE_RE = re.compile(r"!\[([^\]]*)\]\((?!https?://)([^)]+)\)")
+
 
 def derive_title(md_file: str) -> str:
     stem = md_file[:-3] if md_file.endswith(".md") else md_file
@@ -101,7 +104,11 @@ def sync_reports_and_collect_items(reports_dir: str, docs_reports_dir: str) -> l
             title = derive_title(md_file)
             date_text = extract_date_text(md_file)
             safe_file = ensure_unique_filename(target_dir, f"{safe_segment(md_file[:-3])}.md")
-            shutil.copy2(os.path.join(root, md_file), os.path.join(target_dir, safe_file))
+            source_path = os.path.join(root, md_file)
+            target_path = os.path.join(target_dir, safe_file)
+            with open(source_path, "r", encoding="utf-8") as src:
+                raw_content = src.read()
+            write_text(target_path, sanitize_markdown_for_docs(raw_content))
             link = build_link(*safe_path_parts, safe_file[:-3])
             sort_key = md_file
 
@@ -202,6 +209,18 @@ def write_text(path: str, content: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(content.strip() + "\n")
+
+
+def sanitize_markdown_for_docs(content: str) -> str:
+    sanitized = RAW_HTML_TAG_RE.sub(
+        lambda matched: matched.group(0).replace("<", "&lt;").replace(">", "&gt;"),
+        content,
+    )
+    sanitized = LOCAL_IMAGE_RE.sub(
+        lambda matched: f"> 图示见原始资料：{matched.group(2)}",
+        sanitized,
+    )
+    return sanitized
 
 
 def render_item_list(items: list[ReportItem], with_prefix: str = "") -> str:

@@ -194,6 +194,236 @@ export default defineConfig({
                                           {
                                                 "text": "Agent专题",
                                                 "link": "/reports/专题题库/GitHub面经仓/20260316_DeepLearing-Interview-Awesome-2024_Agent专题"
+                                          },
+                                          {
+                                                "text": "视觉感知专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260313_DeepLearing-Interview-Awesome-2024_视觉感知专题"
+                                          },
+                                          {
+                                                "text": "行业算法专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260313_DeepLearing-Interview-Awesome-2024_行业算法专题"
+                                          },
+                                          {
+                                                "text": "深度学习基础专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260313_DeepLearing-Interview-Awesome-2024_深度学习基础专题"
+                                          },
+                                          {
+                                                "text": "手撕代码专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260313_DeepLearing-Interview-Awesome-2024_手撕代码专题"
+                                          },
+                                          {
+                                                "text": "开源项目专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260313_DeepLearing-Interview-Awesome-2024_开源项目专题"
+                                          },
+                                          {
+                                                "text": "LLMs专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260313_DeepLearing-Interview-Awesome-2024_LLMs专题"
+                                          },
+                                          {
+                                                "text": "Agent专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260313_DeepLearing-Interview-Awesome-2024_Agent专题"
+                                          }
+                                    ]
+                              },
+                              {
+                                    "text": "全自动面经资料卡",
+                                    "collapsed": true,
+                                    "items": [
+                                          {
+                                                "text": "融合题库：训练并行与系统",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-训练并行与系统"
+                                          },
+                                          {
+                                                "text": "融合题库：经典算法与编程",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-经典算法与编程"
+                                          },
+                                          {
+                                                "text": "融合题库：生成模型与扩散",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-生成模型与扩散"
+                                          },
+                                          {
+                                                "text": "融合题库：模型微调",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-模型微调"
+                                          },
+                                          {
+                                                "text": "融合题库：数据工程与评测",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-数据工程与评测"
+                                          },
+                                          {
+                                                "text": "融合题库：推理优化与部署",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-推理优化与部署"
+                                          },
+                                          {
+                                                "text": "融合题库：强化学习与RLHF",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-强化学习与RLHF"
+                                          },
+                                          {
+                                                "text": "融合题库：多模态与视觉语言",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-多模态与视觉语言"
+                                          },
+                                          {
+                                                "text": "融合题库：后训练与对齐",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-后训练与对齐"
+                                          },
+                                          {
+                                                "text": "融合题库：其他",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-其他"
+                                          },
+                                          {
+                                                "text": "融合题库：传统机器学习",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-传统机器学习"
+                                          },
+                                          {
+                                                "text": "融合题库：Transformer结构",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-Transformer结构"
+                                          },
+                                          {
+                                                "text": "融合题库：RAG与向量检索",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-RAG与向量检索"
+                                          },
+                                          {
+                                                "text": "融合题库：LLM基础",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-LLM基础"
+                                          },
+                                          {
+                                                "text": "融合题库：Agent与工具调用",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_融合题库-Agent与工具调用"
+                                          },
+                                          {
+                                                "text": "nowcoder：nowcoder_阿里巴巴_阿里大模型二面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_真实面经_nowcoder-nowcoder_阿里巴巴_阿里大模型二面"
+                                          },
+                                          {
+                                                "text": "nowcoder：nowcoder_腾讯_腾讯大模型算法一面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_真实面经_nowcoder-nowcoder_腾讯_腾讯大模型算法一面"
+                                          },
+                                          {
+                                                "text": "全自动面经资料卡总览",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_全自动面经资料卡总览"
+                                          },
+                                          {
+                                                "text": "interview_notes：四、大模型（LLMs）langchain 面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-四、大模型（LLMs）langchain-面"
+                                          },
+                                          {
+                                                "text": "interview_notes：十四、大模型（LLMs）agent 面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-十四、大模型（LLMs）agent-面"
+                                          },
+                                          {
+                                                "text": "interview_notes：十六、LLMs Tokenizer 篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-十六、LLMs-Tokenizer-篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：十八、大模型幻觉（LLM Hallucination）面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-十八、大模型幻觉（LLM-Hallucination）面"
+                                          },
+                                          {
+                                                "text": "interview_notes：十二、大模型（LLMs）显存问题面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-十二、大模型（LLMs）显存问题面"
+                                          },
+                                          {
+                                                "text": "interview_notes：十九、LLMs 对比篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-十九、LLMs-对比篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：十三、大模型（LLMs）分布式训练面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-十三、大模型（LLMs）分布式训练面"
+                                          },
+                                          {
+                                                "text": "interview_notes：十七、大模型（LLMs）加速篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-十七、大模型（LLMs）加速篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：十一、大模型（LLMs）训练集面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-十一、大模型（LLMs）训练集面"
+                                          },
+                                          {
+                                                "text": "interview_notes：十、大模型（LLMs）强化学习面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-十、大模型（LLMs）强化学习面"
+                                          },
+                                          {
+                                                "text": "interview_notes：六、大模型（LLMs）参数高效微调(PEFT) 面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-六、大模型（LLMs）参数高效微调(PEFT)-面"
+                                          },
+                                          {
+                                                "text": "interview_notes：八、大模型（LLMs）增量预训练篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-八、大模型（LLMs）增量预训练篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：五、大模型（LLMs）RAG 检索增强生成面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-五、大模型（LLMs）RAG-检索增强生成面"
+                                          },
+                                          {
+                                                "text": "interview_notes：二十六、多模态常见面试篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-二十六、多模态常见面试篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：二十二、MOE（Mixture-of-Experts）篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-二十二、MOE（Mixture-of-Experts）篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：二十九、大模型推理加速——KV Cache篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-二十九、大模型推理加速——KV-Cache篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：二十三、大模型蒸馏篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-二十三、大模型蒸馏篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：二十七、NLP常见面试篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-二十七、NLP常见面试篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：二十、思维链 Chain-of-Thought（COT）篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-二十、思维链-Chain-of-Thought（COT）篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：三十一、大模型——Chat o1 篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-三十一、大模型——Chat-o1-篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：三十、大模型——角色扮演大模型篇",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-三十、大模型——角色扮演大模型篇"
+                                          },
+                                          {
+                                                "text": "interview_notes：三、大模型（LLMs）微调面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-三、大模型（LLMs）微调面"
+                                          },
+                                          {
+                                                "text": "interview_notes：七、大模型（LLMs）推理面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-七、大模型（LLMs）推理面"
+                                          },
+                                          {
+                                                "text": "interview_notes：一、大模型（LLMs）基础面",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_LLMs_interview_notes-一、大模型（LLMs）基础面"
+                                          },
+                                          {
+                                                "text": "视觉感知专题",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_DeepLearing-Interview-Awesome-2024-DeepLearing-Interview-Awesome-2024_视觉感知专题"
+                                          },
+                                          {
+                                                "text": "行业算法专题",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_DeepLearing-Interview-Awesome-2024-DeepLearing-Interview-Awesome-2024_行业算法专题"
+                                          },
+                                          {
+                                                "text": "深度学习基础专题",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_DeepLearing-Interview-Awesome-2024-DeepLearing-Interview-Awesome-2024_深度学习基础专题"
+                                          },
+                                          {
+                                                "text": "手撕代码专题",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_DeepLearing-Interview-Awesome-2024-DeepLearing-Interview-Awesome-2024_手撕代码专题"
+                                          },
+                                          {
+                                                "text": "开源项目专题",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_DeepLearing-Interview-Awesome-2024-DeepLearing-Interview-Awesome-2024_开源项目专题"
+                                          },
+                                          {
+                                                "text": "LLMs专题",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_DeepLearing-Interview-Awesome-2024-DeepLearing-Interview-Awesome-2024_LLMs专题"
+                                          },
+                                          {
+                                                "text": "Agent专题",
+                                                "link": "/reports/专题题库/全自动面经资料卡/20260316_DeepLearing-Interview-Awesome-2024-DeepLearing-Interview-Awesome-2024_Agent专题"
                                           }
                                     ]
                               }

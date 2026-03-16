@@ -79,4 +79,3 @@ Function Calling 是大模型连接外部工具的核心机制。它允许开发
 1. 一、为什么需要 函数调用(function call)？
 2. 二、什么是 函数调用(function call)？
 3. 开源模型 Function Call 方案有哪些？
-

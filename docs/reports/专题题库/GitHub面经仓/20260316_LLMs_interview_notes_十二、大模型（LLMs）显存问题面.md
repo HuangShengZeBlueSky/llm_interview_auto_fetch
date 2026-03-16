@@ -76,4 +76,3 @@
 
 1. 一、介绍一下 gradient accumulation 显存优化方式？
 2. 二、介绍一下 gradient checkpointing 显存优化方式？
-

@@ -33,6 +33,7 @@
 - `collect_top_conference_papers.py`：自动汇总 ICLR / NeurIPS / ICML 高分 accepted 论文并按模块生成页面
 - `scraper_arxiv.py`：抓 ArXiv 最新论文
 - `generate_interview_bank.py`：扫描仓库已有面经并蒸馏生成“大厂 AI 算法高频题单”
+- `import_github_interview_repos.py`：统一导入 GitHub 面经仓、牛客/知乎/小红书 URL，并生成“基础知识补充 + 详细解答 + 案例模拟”题卡页
 - `insight.py`：从最近面经里生成风向标周报
 - `build_docs.py`：把 `reports/` 生成到 VitePress
 - `receiver_server.py`：Webhook 收图收文入口
@@ -72,6 +73,20 @@ python workflow_scripts/generate_interview_bank.py
 python workflow_scripts/build_docs.py
 npm run docs:build
 ```
+
+如果你想把公开题库和真实面经一口气变成网页资料卡，可以运行：
+
+```bash
+python workflow_scripts/import_github_interview_repos.py
+python workflow_scripts/build_docs.py
+npm run docs:build
+```
+
+外部真实面经 URL 统一维护在 `interview_source_urls.yaml`，同一条导入脚本已经支持：
+
+- `nowcoder`
+- `zhihu`
+- `xiaohongshu`
 
 ### 2. 顶会论文采集
 

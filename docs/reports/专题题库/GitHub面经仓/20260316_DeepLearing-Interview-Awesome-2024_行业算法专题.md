@@ -228,5 +228,3 @@ CountingDINO: A Training-free Pipeline for Class-Agnostic Counting using Unsuper
 2. 强化状态追踪：在Prompt中引入显式的“草稿本（Scratchpad）”或记忆模块，强制模型在每轮生成前总结已调用的工具及结果。
 3. 推理干预与惩罚：在解码阶段对已生成的工具调用Token施加重复惩罚（Repetition Penalty）。
 4. 外部规则拦截：通过工程手段在外部拦截重复请求，并强制注入提示信息（如“该工具已调用，请综合信息回答”），引导模型跳出循环。
-
-

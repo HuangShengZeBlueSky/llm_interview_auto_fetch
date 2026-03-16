@@ -9,6 +9,8 @@ output.log
 
 # 旧的 reports 子目录 git
 reports/.git/
+external/
+archive/interview_cards/
 
 # Node & VitePress
 node_modules/
