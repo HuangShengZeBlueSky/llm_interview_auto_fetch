@@ -33,7 +33,6 @@
 - `collect_top_conference_papers.py`：自动汇总 ICLR / NeurIPS / ICML 高分 accepted 论文并按模块生成页面
 - `scraper_arxiv.py`：抓 ArXiv 最新论文
 - `generate_interview_bank.py`：扫描仓库已有面经并蒸馏生成“大厂 AI 算法高频题单”
-- `import_github_interview_repos.py`：自动拉取外部 GitHub 面经仓库，抽取题目并汇总成站点页面
 - `insight.py`：从最近面经里生成风向标周报
 - `build_docs.py`：把 `reports/` 生成到 VitePress
 - `receiver_server.py`：Webhook 收图收文入口
@@ -70,7 +69,6 @@ npm run docs:build
 
 ```bash
 python workflow_scripts/generate_interview_bank.py
-python workflow_scripts/import_github_interview_repos.py
 python workflow_scripts/build_docs.py
 npm run docs:build
 ```
