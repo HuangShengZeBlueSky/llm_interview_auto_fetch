@@ -6,6 +6,7 @@ __pycache__/
 # 临时文件
 tmp_test_api.py
 output.log
+external/
 
 # 旧的 reports 子目录 git
 reports/.git/

@@ -62,6 +62,140 @@ export default defineConfig({
                                                 "link": "/reports/专题题库/AI算法高频题/20260313_大厂AI算法高频题总表"
                                           }
                                     ]
+                              },
+                              {
+                                    "text": "GitHub面经仓",
+                                    "collapsed": true,
+                                    "items": [
+                                          {
+                                                "text": "interview_notes_四、大模型（LLMs）langchain 面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_四、大模型（LLMs）langchain-面"
+                                          },
+                                          {
+                                                "text": "interview_notes_十四、大模型（LLMs）agent 面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_十四、大模型（LLMs）agent-面"
+                                          },
+                                          {
+                                                "text": "interview_notes_十六、LLMs Tokenizer 篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_十六、LLMs-Tokenizer-篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_十八、大模型幻觉（LLM Hallucination）面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_十八、大模型幻觉（LLM-Hallucination）面"
+                                          },
+                                          {
+                                                "text": "interview_notes_十二、大模型（LLMs）显存问题面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_十二、大模型（LLMs）显存问题面"
+                                          },
+                                          {
+                                                "text": "interview_notes_十九、LLMs 对比篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_十九、LLMs-对比篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_十三、大模型（LLMs）分布式训练面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_十三、大模型（LLMs）分布式训练面"
+                                          },
+                                          {
+                                                "text": "interview_notes_十七、大模型（LLMs）加速篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_十七、大模型（LLMs）加速篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_十一、大模型（LLMs）训练集面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_十一、大模型（LLMs）训练集面"
+                                          },
+                                          {
+                                                "text": "interview_notes_十、大模型（LLMs）强化学习面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_十、大模型（LLMs）强化学习面"
+                                          },
+                                          {
+                                                "text": "interview_notes_六、大模型（LLMs）参数高效微调(PEFT) 面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_六、大模型（LLMs）参数高效微调(PEFT)-面"
+                                          },
+                                          {
+                                                "text": "interview_notes_八、大模型（LLMs）增量预训练篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_八、大模型（LLMs）增量预训练篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_五、大模型（LLMs）RAG 检索增强生成面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_五、大模型（LLMs）RAG-检索增强生成面"
+                                          },
+                                          {
+                                                "text": "interview_notes_二十六、多模态常见面试篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_二十六、多模态常见面试篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_二十二、MOE（Mixture-of-Experts）篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_二十二、MOE（Mixture-of-Experts）篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_二十九、大模型推理加速——KV Cache篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_二十九、大模型推理加速——KV-Cache篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_二十三、大模型蒸馏篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_二十三、大模型蒸馏篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_二十七、NLP常见面试篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_二十七、NLP常见面试篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_二十、思维链 Chain-of-Thought（COT）篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_二十、思维链-Chain-of-Thought（COT）篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_三十一、大模型——Chat o1 篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_三十一、大模型——Chat-o1-篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_三十、大模型——角色扮演大模型篇",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_三十、大模型——角色扮演大模型篇"
+                                          },
+                                          {
+                                                "text": "interview_notes_三、大模型（LLMs）微调面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_三、大模型（LLMs）微调面"
+                                          },
+                                          {
+                                                "text": "interview_notes_七、大模型（LLMs）推理面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_七、大模型（LLMs）推理面"
+                                          },
+                                          {
+                                                "text": "interview_notes_一、大模型（LLMs）基础面",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_LLMs_interview_notes_一、大模型（LLMs）基础面"
+                                          },
+                                          {
+                                                "text": "GitHub面经仓库提取总览",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_GitHub面经仓库提取总览"
+                                          },
+                                          {
+                                                "text": "视觉感知专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_DeepLearing-Interview-Awesome-2024_视觉感知专题"
+                                          },
+                                          {
+                                                "text": "行业算法专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_DeepLearing-Interview-Awesome-2024_行业算法专题"
+                                          },
+                                          {
+                                                "text": "深度学习基础专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_DeepLearing-Interview-Awesome-2024_深度学习基础专题"
+                                          },
+                                          {
+                                                "text": "手撕代码专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_DeepLearing-Interview-Awesome-2024_手撕代码专题"
+                                          },
+                                          {
+                                                "text": "开源项目专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_DeepLearing-Interview-Awesome-2024_开源项目专题"
+                                          },
+                                          {
+                                                "text": "LLMs专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_DeepLearing-Interview-Awesome-2024_LLMs专题"
+                                          },
+                                          {
+                                                "text": "Agent专题",
+                                                "link": "/reports/专题题库/GitHub面经仓/20260316_DeepLearing-Interview-Awesome-2024_Agent专题"
+                                          }
+                                    ]
                               }
                         ]
                   },
